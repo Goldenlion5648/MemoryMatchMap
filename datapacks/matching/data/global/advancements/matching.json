@@ -1,0 +1,18 @@
+{
+    "display": {
+        "title": "matching",
+        "description": "matching",
+        "icon": {
+            "item": "minecraft:player_head",
+            "nbt": "{SkullOwner: 'matching'}"
+        },
+        "show_toast": false,
+        "announce_to_chat": false
+    },
+    "parent": "global:root",
+    "criteria": {
+        "trigger": {
+            "trigger": "minecraft:tick"
+        }
+    }
+}

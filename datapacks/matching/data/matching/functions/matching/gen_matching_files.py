@@ -59,9 +59,29 @@ animals = [
     "evoker",
     "vindicator",
     "illusioner",
+    "witch",
     "vex",
     "parrot",
     "frog",
+    "llama",
+    "cod",
+    "skeleton_horse",
+    "pufferfish",
+    "rabbit",
+    "ravager",
+    "salmon",
+    "sheep",
+    "silverfish",
+    "wither_skeleton",
+    "iron_golem",
+    "snow_golem",
+    "polar_bear",
+    "mooshroom",
+    "guardian",
+    "wolf",
+    "zombified_piglin",
+    "piglin_brute",
+    "piglin",
 ]
 game_corner = (50, 0, 50)
 SMALLEST_BOARD_DIM = 4
@@ -80,22 +100,51 @@ tag {selector_entity(tag=Tags.SHUFFLE_DESTINATION,limit=1)} remove dest
 kill @e[type=marker,tag={Tags.SHUFFLE_TEMP_POS}]'''.splitlines()
 
 NUMBER_OF_DIFFICULTIES = 3
+place_card_blocks_holder = OutputFile("place_card_blocks_difficulty")
+summon_animals_holder = OutputFile("summon_animals_difficulty")
+place_slimes_holder = OutputFile("place_slimes_difficulty")
+shuffle_mobs_holder = OutputFile("shuffle_mobs_difficulty")
 for difficulty in range(NUMBER_OF_DIFFICULTIES):
     board_dim = SMALLEST_BOARD_DIM + difficulty*2
-    place_card_blocks = OutputFile(f"place_card_blocks_difficulty{difficulty}")
-    summon_animals = OutputFile(f"summon_animals_difficulty{difficulty}")
-    place_slimes = OutputFile(f"place_slimes_difficulty{difficulty}")
-    shuffle_mobs = OutputFile(f"shuffle_mobs_difficulty{difficulty}")
-    
+    place_card_blocks_holder.add_variant(difficulty)
+    place_card_blocks = place_card_blocks_holder.get_variant(-1)
+    summon_animals_holder.add_variant(difficulty)
+    summon_animals = summon_animals_holder.get_variant(-1)
+    place_slimes_holder.add_variant(difficulty)
+    place_slimes = place_slimes_holder.get_variant(-1)
+    shuffle_mobs_holder.add_variant(difficulty)
+    shuffle_mobs = shuffle_mobs_holder.get_variant(-1)
 
-    place_card_blocks.append(f"fill {tuple_to_string(game_corner)} {game_corner[0] + board_dim**2} {game_corner[1]} {game_corner[2] + board_dim**2} stone_bricks")
     tile_lower_corners = []
+    temp_card_tile_commands = []
+    for x_counter in range(board_dim):
+        for z_counter in range(board_dim):
+            x = game_corner[0] + x_counter * (tile_dim + 1)
+            z = game_corner[2] + z_counter * (tile_dim + 1)
+            corner_x = x + 1
+            corner_z = z + 1
+            tile_lower_corners.append((corner_x, game_corner[1], corner_z))
+            highest_corner = (x + tile_dim, game_corner[1], z + tile_dim)
 
-    for x in range(game_corner[0], game_corner[0] + board_dim**2, 5):
-        for z in range(game_corner[0], game_corner[0] + board_dim**2, 5):
-            tile_lower_corners.append((x + 1, game_corner[1], z + 1))
-            place_card_blocks.append(f"fill {x + 1} {game_corner[1]} {z + 1} {x + tile_dim} {game_corner[1]} {z + tile_dim} purple_concrete")
+            temp_card_tile_commands.append(
+                f"fill {corner_x} {game_corner[1]} {corner_z} {tuple_to_string(highest_corner)} purple_concrete"
+            )
 
+    
+    highest_board_dim = SMALLEST_BOARD_DIM + (NUMBER_OF_DIFFICULTIES-1) * 2
+    high_corners = [
+        (   
+            game_corner[0] + highest_board_dim**2, 
+            game_corner[1], game_corner[2] + 
+            highest_board_dim**2
+        ), 
+        highest_corner
+    ]
+    for high_corner, block, mode in zip(high_corners, ["air", "stone_bricks"], ["replace", "hollow"]):
+        place_card_blocks.append(f"fill {tuple_to_string(game_corner)} {tuple_to_string(element_wise(high_corner, [1, -6, 1]))} {block} {mode}")
+        # place_card_blocks.append(f"fill {tuple_to_string(game_corner)} {tuple_to_string(element_wise(highest_corner, (1, 0, 1)))} stone_bricks")
+
+    place_card_blocks.extend(temp_card_tile_commands)
     summon_animals.extend(smooth_remove(entity_selector(tag=Tags.ANIMAL_CARD.value)))
     create_scoreboard("mob_id")
 
@@ -204,7 +253,7 @@ found_match.extend(
             )
         )
     ) +
-    play_sound_at_pitches_based_on_score(REVEAL_COOLDOWN_SCORE, "minecraft:block.note_block.chime", [20, 30, 40], [0.3, 1, 1.7]) + 
+    play_sound_at_pitches_based_on_score(REVEAL_COOLDOWN_SCORE, "minecraft:block.note_block.chime", [25, 30, 35], [1.3, 1, .7]) + 
     execute_if_score_equals(REVEAL_COOLDOWN_SCORE, 1,
         execute_as(players,
             execute_if_score_equals_score(player_turn_id_score, turn_player_score, owner1=at_s(),to_run=
@@ -259,7 +308,7 @@ calculate_winner.extend(
     debug("calculating winner"),
     scoreboard_operation(highest_score, '>', player_matches_found_count, owner2=players),
     set_score(number_of_winners_score, 0),
-    execute_as(at_a(), 
+    execute_as(players, 
         execute_if_score_equals_score(player_matches_found_count, highest_score, owner1=at_s(), to_run=
             scoreboard_operation(number_of_winners_score, '+=', 1)
         )
@@ -267,16 +316,27 @@ calculate_winner.extend(
     execute_if_score_matches(number_of_winners_score, '1', 
         raw(
             '''
-            title @a subtitle {"text":"Wins!","color":"green"}
             title @a title [{"selector":"__players__","separator":" and ","color":"green","bold":true}]
+            title @a subtitle {"text":"Wins!","color":"green"}
+            '''.replace("__players__", players)
+        ) + 
+        raw(
+            '''
+            tellraw @a [{"selector":"__players__","separator":" and ","color":"green","bold":true}]
+            tellraw @a {"text":"Wins!","color":"green"}
             '''.replace("__players__", players)
         )
     ),
     execute_if_score_matches(number_of_winners_score, '2..', 
         raw(
             '''
-            title @a subtitle {"text":"Tied!","color":"green"}
-            title @a title [{"selector":"__players__","separator":" and ","color":"green","bold":true}]
+            title @a title [{"selector":"__players__","separator":" and ","color":"#FF822E","bold":true}]
+            title @a subtitle {"text":"Tied!","color":"#FF822E"}
+            '''.replace("__players__", players)
+        ) + raw(
+            '''
+            tellraw @a [{"selector":"__players__","separator":" and ","color":"#FF822E","bold":true}]
+            tellraw @a {"text":"Tied!","color":"#FF822E"}
             '''.replace("__players__", players)
         )
     )
@@ -284,7 +344,7 @@ calculate_winner.extend(
 )
 check_game_complete = OutputFile("check_game_complete", is_update_file=True)
 remaining_cards_score = "remaining_cards"
-has_winner_been_found_score = "has_winner_been_found_score" 
+has_winner_been_found_score = "has_winner_been_found" 
 check_game_complete.extend(
     set_score_to_count_of(remaining_cards_score, entity_selector(tag=Tags.CARD_OUTLINE_TAG)),
     execute_if_score_matches(has_winner_been_found_score, 0,
@@ -312,6 +372,15 @@ spin_revealed.extend(
     # ) 
 )
 
+selected_difficulty_score = "selected_difficulty" 
+run_correct_difficulty = OutputFile("run_correct_difficulty")
+for i in range(NUMBER_OF_DIFFICULTIES):
+    run_correct_difficulty.extend(
+        execute_if_score_matches(selected_difficulty_score, i,
+            call_function(f"setup_game_difficulty{i}")
+        )
+    )
+
 assign_player_turn_order = OutputFile("assign_player_turn_order")
 
 assign_player_turn_order.extend(
@@ -327,18 +396,24 @@ for i in range(16):
     assign_player_turn_order.extend(scoreboard_operation(current_player_id_being_assigned, '+=', 1))
 assign_player_turn_order.extend(announce("order has been assigned"))
 
+
 reset_scores = OutputFile("reset_scores")
 reset_scores.extend(
-    set_score(player_matches_found_count, 0, players)
+    set_score(player_matches_found_count, 0, players),
+    set_score(has_winner_been_found_score, 0),
+    set_score(selected_difficulty_score, 0)
 )
+
+end_of_game_code = OutputFile("end_of_game_code")
+
 
 for i in range(NUMBER_OF_DIFFICULTIES):
     setup_game = OutputFile(f"setup_game_difficulty{i}")
     setup_game.extend(
-        call_function(place_card_blocks.get_variant(i)),
-        call_function(summon_animals.get_variant(i)),
-        call_function(shuffle_mobs.get_variant(i)),
-        call_function(place_slimes.get_variant(i)),
+        call_function(place_card_blocks_holder.get_variant(i)),
+        call_function(summon_animals_holder.get_variant(i)),
+        call_function(shuffle_mobs_holder.get_variant(i)),
+        call_function(place_slimes_holder.get_variant(i)),
         call_function(reset_scores),
         call_function(assign_player_turn_order),
         smooth_remove(selector_entity(type=MARKER_MOB))

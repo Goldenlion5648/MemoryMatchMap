@@ -2,6 +2,6 @@
     "replace": false,
     "values": [
         "matching:matching/reset",
-        "matching:matching/setup_game"
+        "matching:matching/setup_game_difficulty1"
     ]
 }

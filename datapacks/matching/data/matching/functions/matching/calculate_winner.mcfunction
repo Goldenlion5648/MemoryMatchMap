@@ -7,6 +7,8 @@ execute if score global number_of_winners matches 1 run title @a title [{"select
 execute if score global number_of_winners matches 1 run title @a subtitle {"text":"Wins!","color":"green"}
 execute if score global number_of_winners matches 1 run tellraw @a [{"selector":"@a","separator":" and ","color":"green","bold":true}]
 execute if score global number_of_winners matches 1 run tellraw @a {"text":"Wins!","color":"green"}
+execute if score global number_of_winners matches 1 run function matching:matching/celebration_sound
+execute if score global number_of_winners matches 1 run function matching:matching/win_animation
 execute if score global number_of_winners matches 2.. run title @a title [{"selector":"@a","separator":" and ","color":"#FF822E","bold":true}]
 execute if score global number_of_winners matches 2.. run title @a subtitle {"text":"Tied!","color":"#FF822E"}
 execute if score global number_of_winners matches 2.. run tellraw @a [{"selector":"@a","separator":" and ","color":"#FF822E","bold":true}]

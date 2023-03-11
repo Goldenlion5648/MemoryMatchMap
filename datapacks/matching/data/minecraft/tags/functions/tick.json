@@ -9,6 +9,7 @@
         "matching:matching/check_match",
         "matching:matching/end_of_tick_code",
         "matching:matching/helper_update",
-        "matching:matching/check_game_complete"
+        "matching:matching/check_game_complete",
+        "matching:matching/apply_invis"
     ]
 }

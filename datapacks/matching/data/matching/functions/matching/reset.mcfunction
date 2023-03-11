@@ -20,6 +20,9 @@ scoreboard players set const15 const 15
 scoreboard objectives add game_clock dummy
 scoreboard players set global game_clock 0
 scoreboard objectives add mob_id dummy
+scoreboard players set global mob_id 0
+scoreboard players set global mob_id 0
+scoreboard players set global mob_id 0
 scoreboard objectives add selected_count dummy
 scoreboard objectives add reveal_cooldown dummy
 scoreboard objectives add player_turn_id dummy
@@ -28,17 +31,69 @@ scoreboard objectives add const dummy
 scoreboard players set const1 const 1
 scoreboard objectives add turn_player dummy
 scoreboard players set global turn_player 0
+scoreboard players set global reveal_cooldown 0
+scoreboard players set global reveal_cooldown 0
+scoreboard players set global reveal_cooldown 0
+scoreboard players set global reveal_cooldown 0
+scoreboard players set global reveal_cooldown 0
 scoreboard players set const1 const 1
 scoreboard objectives add player_matches_found_count dummy
 scoreboard players set @s player_matches_found_count 0
+scoreboard players set global reveal_cooldown 0
+scoreboard players set global reveal_cooldown 0
+scoreboard players set global reveal_cooldown 0
+scoreboard players set global reveal_cooldown 0
+scoreboard players set global reveal_cooldown 0
+scoreboard players set global reveal_cooldown 0
+scoreboard players set global selected_count 0
+scoreboard objectives add selected_difficulty dummy
+scoreboard players set global selected_difficulty 0
+scoreboard players set global selected_difficulty 0
+scoreboard players set global selected_difficulty 0
+scoreboard players set global selected_difficulty 0
+scoreboard players set global selected_difficulty 0
+scoreboard players set global selected_difficulty 0
+scoreboard players set global selected_difficulty 0
+scoreboard players set global selected_difficulty 0
+scoreboard players set global selected_difficulty 0
+scoreboard players set global selected_difficulty 0
+scoreboard players set global selected_difficulty 0
+scoreboard players set global selected_difficulty 0
+scoreboard players set global selected_difficulty 0
+scoreboard players set global selected_difficulty 0
+scoreboard players set global selected_difficulty 0
+scoreboard players set global selected_difficulty 0
+scoreboard players set global selected_difficulty 0
+scoreboard players set global selected_difficulty 0
+scoreboard players set global selected_difficulty 0
+scoreboard players set global selected_difficulty 0
+scoreboard players set global selected_difficulty 0
+scoreboard players set global selected_difficulty 0
+scoreboard players set global selected_difficulty 0
+scoreboard players set global selected_difficulty 0
+scoreboard players set global selected_difficulty 0
+scoreboard players set global selected_difficulty 0
+scoreboard players set global selected_difficulty 0
+scoreboard players set global selected_difficulty 0
+scoreboard players set global selected_difficulty 0
+scoreboard players set global selected_difficulty 0
+scoreboard players set global selected_difficulty 0
+scoreboard players set global selected_difficulty 0
+scoreboard players set global selected_difficulty 0
 scoreboard objectives add highest_score dummy
 scoreboard players set global highest_score 0
 scoreboard objectives add number_of_winners dummy
 scoreboard players set const1 const 1
 scoreboard players set global number_of_winners 0
+scoreboard players set global number_of_winners 0
+scoreboard players set global number_of_winners 0
 scoreboard objectives add remaining_cards dummy
 scoreboard objectives add has_winner_been_found dummy
-scoreboard objectives add selected_difficulty dummy
+scoreboard players set global remaining_cards 0
+scoreboard players set global has_winner_been_found 0
+scoreboard players set global selected_difficulty 0
+scoreboard players set global selected_difficulty 0
+scoreboard players set global selected_difficulty 0
 scoreboard objectives add current_player_id_being_assigned dummy
 scoreboard objectives add total_player_count dummy
 scoreboard players set const1 const 1

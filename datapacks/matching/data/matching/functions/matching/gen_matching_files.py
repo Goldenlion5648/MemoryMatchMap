@@ -30,6 +30,7 @@ class Tags(Enum):
 game_clock_score = "game_clock"
 
 # print(helper_functions.UPDATE_JSON_FILE)
+invisibility_effect = "invisibility"
 
 create_scoreboard(game_clock_score, 0)
 increment_each_tick(game_clock_score)
@@ -42,6 +43,13 @@ current_player_id_being_assigned = "current_player_id_being_assigned"
 times_left_to_run = "times_left_to_run"
 player_matches_found_count = "player_matches_found_count"
 highest_score = "highest_score"
+facedown_card_block = "white_wool"
+faceup_card_block = "red_wool"
+complete_card_block = "green_wool"
+selected_difficulty_score = "selected_difficulty" 
+
+
+
 
 unassigned_players = at_e(type='player',score=[(player_turn_id_score, -1)],limit=1,sort='random')
 players = at_a()
@@ -88,7 +96,6 @@ SMALLEST_BOARD_DIM = 4
 tile_dim = 3
 
 
-
 fisher_yates_single_pass = f'''tag @e[tag=hidden,tag=!moved,limit=1] add moving
 execute at @e[tag=moving] run summon marker ~ ~ ~ {{Tags:["{Tags.SHUFFLE_TEMP_POS}"]}}
 tag @e[tag=hidden,sort=random,limit=1] add dest
@@ -104,6 +111,7 @@ place_card_blocks_holder = OutputFile("place_card_blocks_difficulty")
 summon_animals_holder = OutputFile("summon_animals_difficulty")
 place_slimes_holder = OutputFile("place_slimes_difficulty")
 shuffle_mobs_holder = OutputFile("shuffle_mobs_difficulty")
+difficulty_high_corners = []
 for difficulty in range(NUMBER_OF_DIFFICULTIES):
     board_dim = SMALLEST_BOARD_DIM + difficulty*2
     place_card_blocks_holder.add_variant(difficulty)
@@ -127,7 +135,7 @@ for difficulty in range(NUMBER_OF_DIFFICULTIES):
             highest_corner = (x + tile_dim, game_corner[1], z + tile_dim)
 
             temp_card_tile_commands.append(
-                f"fill {corner_x} {game_corner[1]} {corner_z} {tuple_to_string(highest_corner)} purple_concrete"
+                f"fill {corner_x} {game_corner[1]} {corner_z} {tuple_to_string(highest_corner)} {facedown_card_block}"
             )
 
     
@@ -140,9 +148,25 @@ for difficulty in range(NUMBER_OF_DIFFICULTIES):
         ), 
         highest_corner
     ]
+    difficulty_high_corners.append(highest_corner)
+
     for high_corner, block, mode in zip(high_corners, ["air", "stone_bricks"], ["replace", "hollow"]):
         place_card_blocks.append(f"fill {tuple_to_string(game_corner)} {tuple_to_string(element_wise(high_corner, [1, -6, 1]))} {block} {mode}")
         # place_card_blocks.append(f"fill {tuple_to_string(game_corner)} {tuple_to_string(element_wise(highest_corner, (1, 0, 1)))} stone_bricks")
+    outline_block = "yellow_glazed_terracotta"
+    high_game_corner = element_wise(high_corner, [1, 0, 1])
+    facing_order = ["north", "east", "west", "south"]
+    # place border rows
+    for x, facing in zip(range(game_corner[0], high_game_corner[0] + 1), it.cycle(facing_order)):
+        for main_z in [game_corner[2], high_game_corner[2]]:
+            place_card_blocks.append(f"setblock {x} {game_corner[1]} {main_z} yellow_glazed_terracotta[facing={facing}] replace")
+
+    facing_order = ["north", "west", "east", "south"]
+    # place border columns
+    for z, facing in zip(range(game_corner[2], high_game_corner[2] + 1), it.cycle(facing_order)):
+        for main_x in [game_corner[0], high_game_corner[0]]:
+            place_card_blocks.append(f"setblock {main_x} {game_corner[1]} {z} {outline_block}[facing={facing}] replace")
+    # place_card_blocks.append(f"fill {tuple_to_string(game_corner)} {tuple_to_string()} {outline_block} outline")
 
     place_card_blocks.extend(temp_card_tile_commands)
     summon_animals.extend(smooth_remove(entity_selector(tag=Tags.ANIMAL_CARD.value)))
@@ -194,7 +218,7 @@ select_card_file.extend(
                 execute_if_score_equals_score(player_turn_id_score, turn_player_score, owner1=at_s(), to_run=
                     execute_as(hit_slime_selector,
                         add_tag("@s", Tags.SELECTED_SLIME_TAG) +
-                        eval_macro(f"{REVEAL_COOLDOWN_SCORE} = 45")
+                        eval_macro(f"{REVEAL_COOLDOWN_SCORE} = 30")
                     )
                 )
             )
@@ -202,14 +226,14 @@ select_card_file.extend(
     )
 )
 def change_card_color(block):
-    return f"fill ~-1 ~-1 ~-1 ~1 ~-1 ~1 {block} replace #minecraft:mineable/pickaxe"
+    return f"fill ~-1 ~-1 ~-1 ~1 ~-1 ~1 {block} replace"
 
 flip_card = OutputFile("flip_card", is_update_file=True)
 flip_card.extend(
     execute_as(f"@e[tag={Tags.SELECTED_SLIME_TAG},tag=!{Tags.REVEALED_TAG}] at @s",
-        [change_card_color("minecraft:red_concrete")] +
+        [change_card_color(faceup_card_block)] +
         execute_positioned("~ ~-4 ~", 
-            add_delay(4, Tags.SPIN_DELAY_TAG) +
+            summon_delay_cloud(4, Tags.SPIN_DELAY_TAG) +
             execute_as_at_self(entity_selector(tag=Tags.ANIMAL_CARD,distance="..3"),
                 add_tag("@s", Tags.SELECTED_MOB_TAG) +
                 place_marker(tags=[Tags.REVEAL_CARD_TEMP_POS_TAG])
@@ -243,7 +267,7 @@ found_match = OutputFile("found_match")
 found_match.extend(
     execute_as_at(f"@e[tag={Tags.SELECTED_MOB_TAG}]",
         (
-            [change_card_color("black_concrete")] +
+            [change_card_color(complete_card_block)] +
             execute_if_score_equals(REVEAL_COOLDOWN_SCORE, 1,
                 execute_as(
                     f"@e[tag={Tags.CARD_OUTLINE_TAG},distance=..2]",
@@ -253,7 +277,7 @@ found_match.extend(
             )
         )
     ) +
-    play_sound_at_pitches_based_on_score(REVEAL_COOLDOWN_SCORE, "minecraft:block.note_block.chime", [25, 30, 35], [1.3, 1, .7]) + 
+    play_sound_at_pitches_based_on_score(REVEAL_COOLDOWN_SCORE, "minecraft:block.note_block.chime", [3, 11, 19, 27], [1.3, 1, .7, .4]) + 
     execute_if_score_equals(REVEAL_COOLDOWN_SCORE, 1,
         execute_as(players,
             execute_if_score_equals_score(player_turn_id_score, turn_player_score, owner1=at_s(),to_run=
@@ -271,7 +295,7 @@ found_match.extend(
 put_card_back_down = OutputFile("put_card_back_down")
 put_card_back_down.extend(
     play_sound_at_pitches_based_on_score(REVEAL_COOLDOWN_SCORE, 
-    "block.note_block.bit", [40, 30, 20], [1.7, 1, .3]) +
+    "block.note_block.bit", [27, 19, 11, 3], [1.7, 1.2, .7, .2]) +
     execute_if_score_equals(REVEAL_COOLDOWN_SCORE, 1,
         execute_as_at_self(selector_entity(tags=Tags.SELECTED_MOB_TAG),
             tp("@s", selector_entity(type=MARKER_MOB,sort="nearest",limit=1)) +
@@ -279,7 +303,7 @@ put_card_back_down.extend(
             kill(selector_entity(tag=Tags.REVEAL_CARD_TEMP_POS_TAG))
         ) +
         execute_as_at_self(selector_entity(tag=Tags.SELECTED_SLIME_TAG), 
-            [change_card_color("purple_concrete")] +
+            [change_card_color(facedown_card_block)] +
             remove_tag("@s", Tags.REVEALED_TAG) +
             remove_tag("@s", Tags.SELECTED_SLIME_TAG)
         ) + 
@@ -301,6 +325,52 @@ check_match.extend(
     )
 )
 
+celebration_sound = OutputFile("celebration_sound")
+last_delay_mult = 6
+occurrence_rate = 5 
+celebration_sound.extend(
+    it.chain(
+        delay_code_block(
+            playsound("minecraft:block.note_block.chime", .90 + .1*i), i*occurrence_rate
+        )[0] for i in range(1, last_delay_mult)
+    )
+)
+celebration_sound.extend(
+    delay_code_block(
+        playsound("minecraft:block.bell.use"), (last_delay_mult + 1)*occurrence_rate
+    )
+)
+
+win_animation = OutputFile("win_animation")
+win_animation.extend(
+    it.chain.from_iterable(
+        execute_if_score_matches(selected_difficulty_score, i,
+            [ 
+                execute_at(element_wise(pos, [0,4,0]),
+                    raw(
+                    '''summon firework_rocket ~ ~ ~ {FireworksItem:{id:"firework_rocket",Count:1,tag:{Fireworks:{Explosions:[{Type:2,Flicker:1b,Trail:1b,Colors:[I;15086110,5205247],FadeColors:[I;16772075]}]}}}}'''
+                    )
+                )[0] 
+                for pos in get_four_corners(game_corner, difficulty_high_corners[i])
+            ]
+        )
+        for i in range(NUMBER_OF_DIFFICULTIES)
+    )
+)
+win_animation.extend(
+    it.chain.from_iterable(
+        delay_code_block(
+            [
+                execute_positioned(get_center(game_corner, difficulty_high_corners[diff]),
+                    execute_if_score_matches(selected_difficulty_score, diff,
+                        raw(
+                            f'''fill ~-{i} ~ ~-{i} ~{i} ~ ~{i} diamond_block replace #minecraft:wool'''
+                        ))
+                )[0] for diff in range(NUMBER_OF_DIFFICULTIES)
+            ], i*2
+        ) for i in range(0, 40, 4)
+    )
+)
 
 number_of_winners_score = "number_of_winners"
 calculate_winner = OutputFile("calculate_winner")
@@ -325,7 +395,11 @@ calculate_winner.extend(
             tellraw @a [{"selector":"__players__","separator":" and ","color":"green","bold":true}]
             tellraw @a {"text":"Wins!","color":"green"}
             '''.replace("__players__", players)
-        )
+        ) +
+        # playsound minecraft:block.note_block.chime master @s ~ ~ ~ 1 0.92
+        call_function(celebration_sound) + 
+        call_function(win_animation)
+        
     ),
     execute_if_score_matches(number_of_winners_score, '2..', 
         raw(
@@ -372,7 +446,17 @@ spin_revealed.extend(
     # ) 
 )
 
-selected_difficulty_score = "selected_difficulty" 
+apply_invis = OutputFile("apply_invis", is_update_file=True)
+edge_distance = abs(game_corner[0] - difficulty_high_corners[-1][0])
+apply_invis.extend(
+    execute_positioned(game_corner,
+        effect_give(at_e(dy=-10,dx=edge_distance,dz=edge_distance,tag=Tags.ANIMAL_CARD), invisibility_effect) + 
+        effect_clear(at_e(dy=10,dx=edge_distance,dz=edge_distance,tag=Tags.ANIMAL_CARD), invisibility_effect)
+    )
+    # effect(at_e(tags=[Tags.ANIMAL_CARD,f"!{Tags.REVEALED_TAG}",f"!{Tags.SELECTED_MOB_TAG}"],type="!player"), invisibility_effect) + 
+    # effect_clear(at_e(tags=[Tags.ANIMAL_CARD],type="!player"), invisibility_effect)
+)
+
 run_correct_difficulty = OutputFile("run_correct_difficulty")
 for i in range(NUMBER_OF_DIFFICULTIES):
     run_correct_difficulty.extend(
@@ -401,7 +485,7 @@ reset_scores = OutputFile("reset_scores")
 reset_scores.extend(
     set_score(player_matches_found_count, 0, players),
     set_score(has_winner_been_found_score, 0),
-    set_score(selected_difficulty_score, 0)
+    # set_score(selected_difficulty_score, 0)
 )
 
 end_of_game_code = OutputFile("end_of_game_code")
@@ -410,6 +494,7 @@ end_of_game_code = OutputFile("end_of_game_code")
 for i in range(NUMBER_OF_DIFFICULTIES):
     setup_game = OutputFile(f"setup_game_difficulty{i}")
     setup_game.extend(
+        set_score(selected_difficulty_score, i),
         call_function(place_card_blocks_holder.get_variant(i)),
         call_function(summon_animals_holder.get_variant(i)),
         call_function(shuffle_mobs_holder.get_variant(i)),

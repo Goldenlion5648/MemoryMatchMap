@@ -1,3 +1,4 @@
+scoreboard players set global selected_difficulty 0
 function matching:matching/place_card_blocks_difficulty0
 function matching:matching/summon_animals_difficulty0
 function matching:matching/shuffle_mobs_difficulty0

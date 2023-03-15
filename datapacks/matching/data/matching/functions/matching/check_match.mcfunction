@@ -9,7 +9,7 @@ execute if score global matching_count matches ..1 run execute store result scor
 execute if score global matching_count matches ..1 run execute store result score global matching_count run execute if entity @e[type=axolotl,tag=selected_mob]
 execute if score global matching_count matches ..1 run execute store result score global matching_count run execute if entity @e[type=evoker,tag=selected_mob]
 execute if score global matching_count matches ..1 run execute store result score global matching_count run execute if entity @e[type=vindicator,tag=selected_mob]
-execute if score global matching_count matches ..1 run execute store result score global matching_count run execute if entity @e[type=illusioner,tag=selected_mob]
+execute if score global matching_count matches ..1 run execute store result score global matching_count run execute if entity @e[type=fox,tag=selected_mob]
 execute if score global matching_count matches ..1 run execute store result score global matching_count run execute if entity @e[type=witch,tag=selected_mob]
 execute if score global matching_count matches ..1 run execute store result score global matching_count run execute if entity @e[type=vex,tag=selected_mob]
 execute if score global matching_count matches ..1 run execute store result score global matching_count run execute if entity @e[type=parrot,tag=selected_mob]

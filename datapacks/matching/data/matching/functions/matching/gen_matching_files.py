@@ -35,6 +35,13 @@ invisibility_effect = "invisibility"
 create_scoreboard(game_clock_score, 0)
 increment_each_tick(game_clock_score)
 helper_update.append(f"team join passable {selector_entity(selector='@a',team='!passable')}")
+helper_update.extend(
+    effect_give(at_a(), "minecraft:saturation"),
+    kill(at_e(type="item"))
+    #TODO before release, uncomment
+    # raw('gamemode adventure @a')
+
+)
 
 turn_player_score = "turn_player"
 player_turn_id_score = "player_turn_id"
@@ -43,12 +50,11 @@ current_player_id_being_assigned = "current_player_id_being_assigned"
 times_left_to_run = "times_left_to_run"
 player_matches_found_count = "player_matches_found_count"
 highest_score = "highest_score"
-facedown_card_block = "white_wool"
+facedown_card_block = "blue_wool"
 faceup_card_block = "red_wool"
 complete_card_block = "green_wool"
-selected_difficulty_score = "selected_difficulty" 
-
-
+selected_difficulty_score = "selected_difficulty"
+is_make_it_take_it_mode = create_scoreboard("is_make_it_take_it_mode", 0)
 
 
 unassigned_players = at_e(type='player',score=[(player_turn_id_score, -1)],limit=1,sort='random')
@@ -66,7 +72,7 @@ animals = [
     "axolotl",
     "evoker",
     "vindicator",
-    "illusioner",
+    "fox",
     "witch",
     "vex",
     "parrot",
@@ -143,16 +149,25 @@ for difficulty in range(NUMBER_OF_DIFFICULTIES):
     high_corners = [
         (   
             game_corner[0] + highest_board_dim**2, 
-            game_corner[1], game_corner[2] + 
-            highest_board_dim**2
+            game_corner[1], 
+            game_corner[2] + highest_board_dim**2
         ), 
         highest_corner
     ]
     difficulty_high_corners.append(highest_corner)
 
-    for high_corner, block, mode in zip(high_corners, ["air", "stone_bricks"], ["replace", "hollow"]):
+    # first clears the largest possible area (if last difficulty played was
+    # the hardest).
+    for high_corner, block, mode in zip(high_corners, [AIR, "stone_bricks"], ["replace", "hollow"]):
+        upper_shield_pos1 = tuple_to_string(element_wise(game_corner, [-1, 0, -1]))
+        upper_shield_pos2 = tuple_to_string(element_wise(high_corner, [2, 6, 2]))
+        if block == AIR:
+            place_card_blocks.append(f"fill {upper_shield_pos1} {upper_shield_pos2} air")
+        else:
+            place_card_blocks.append(f"fill {upper_shield_pos1} {upper_shield_pos2} barrier outline")
         place_card_blocks.append(f"fill {tuple_to_string(game_corner)} {tuple_to_string(element_wise(high_corner, [1, -6, 1]))} {block} {mode}")
-        # place_card_blocks.append(f"fill {tuple_to_string(game_corner)} {tuple_to_string(element_wise(highest_corner, (1, 0, 1)))} stone_bricks")
+    # place_card_blocks.append(f"fill {tuple_to_string(game_corner)} {tuple_to_string(element_wise(high_corner, [1, -6, 1]))} barrier outline")
+
     outline_block = "yellow_glazed_terracotta"
     high_game_corner = element_wise(high_corner, [1, 0, 1])
     facing_order = ["north", "east", "west", "south"]
@@ -170,7 +185,7 @@ for difficulty in range(NUMBER_OF_DIFFICULTIES):
 
     place_card_blocks.extend(temp_card_tile_commands)
     summon_animals.extend(smooth_remove(entity_selector(tag=Tags.ANIMAL_CARD.value)))
-    create_scoreboard("mob_id")
+    create_scoreboard("mob_id", 0)
 
     current_difficulty_animals = animals[:board_dim**2 // 2]
     
@@ -180,7 +195,7 @@ for difficulty in range(NUMBER_OF_DIFFICULTIES):
         )
     for i, animal in enumerate(current_difficulty_animals, 1):
         summon_animals.append(f"execute as @e[type={animal}] run scoreboard players set @s mob_id {i}")
-    summon_animals.append('tellraw @a "animals have been placed!"')
+    # summon_animals.append('tellraw @a "animals have been placed!"')
 
     place_slimes.append("tp @e[type=minecraft:slime] ~ ~-400 ~")
     for pos in tile_lower_corners:
@@ -190,7 +205,7 @@ for difficulty in range(NUMBER_OF_DIFFICULTIES):
         fisher_yates_single_pass * len(current_difficulty_animals) * 2
     )
     # execute as @e[tag=moving] run say was moved
-    shuffle_mobs.append('tellraw @a "cards have been shuffled!"')
+    # shuffle_mobs.append('tellraw @a "cards have been shuffled!"')
     # difficulty_setup.extend(
     #     place_card_blocks,
     #     summon_animals,
@@ -256,11 +271,26 @@ for animal in animals:
         )
     )
 
+total_turns_taken = create_scoreboard("total_turns_taken")
 go_to_next_player_turn = OutputFile("go_to_next_player_turn")
 go_to_next_player_turn.extend(
+    eval_macro(f"{total_turns_taken} += 1"),
     eval_macro(f"{turn_player_score} += 1"),
     scoreboard_operation(turn_player_score, '%=',total_player_count_score),
-    announce("moving to next player's turn...")
+    execute_unless_score(total_player_count_score, 'matches 1', 
+        announce("moving to next player's turn...") +
+        delay_code_block(
+            raw('''/tellraw @a[scores={is_my_turn_score=1}] [{"text":"It is "},{"selector":"@a[scores={is_my_turn_score=1}]","color":"dark_aqua","bold":true},{"text":"'s turn"}]'''),
+            1
+        )
+    )
+    # announce("Make it, take it! Your move again!")
+    # execute_if_score_equals(is_make_it_take_it_mode, 0,
+    #     eval_macro(f"{turn_player_score} += 1"),
+    #     scoreboard_operation(turn_player_score, '%=',total_player_count_score),
+    # ),
+    # execute_if_score_equals(is_make_it_take_it_mode, 1,
+    # )
 )
 
 found_match = OutputFile("found_match")
@@ -299,8 +329,8 @@ put_card_back_down.extend(
     execute_if_score_equals(REVEAL_COOLDOWN_SCORE, 1,
         execute_as_at_self(selector_entity(tags=Tags.SELECTED_MOB_TAG),
             tp("@s", selector_entity(type=MARKER_MOB,sort="nearest",limit=1)) +
-            remove_tag("@s", Tags.SELECTED_MOB_TAG) +
-            kill(selector_entity(tag=Tags.REVEAL_CARD_TEMP_POS_TAG))
+            kill(selector_entity(tag=Tags.REVEAL_CARD_TEMP_POS_TAG,sort='nearest',limit=1)) + 
+            remove_tag("@s", Tags.SELECTED_MOB_TAG)
         ) +
         execute_as_at_self(selector_entity(tag=Tags.SELECTED_SLIME_TAG), 
             [change_card_color(facedown_card_block)] +
@@ -375,7 +405,8 @@ win_animation.extend(
 number_of_winners_score = "number_of_winners"
 calculate_winner = OutputFile("calculate_winner")
 calculate_winner.extend(
-    debug("calculating winner"),
+    # announce("calculating winner"),
+    set_score(highest_score, 0),
     scoreboard_operation(highest_score, '>', player_matches_found_count, owner2=players),
     set_score(number_of_winners_score, 0),
     execute_as(players, 
@@ -413,6 +444,12 @@ calculate_winner.extend(
             tellraw @a {"text":"Tied!","color":"#FF822E"}
             '''.replace("__players__", players)
         )
+    ),
+    execute_if_score_matches(number_of_winners_score, '1..',
+        delay_code_block(
+            raw('''tellraw @p [{"text":"The game took "},{"score":{"name":"global","objective":"total_turns_taken"}},{"text":" turns!"}]'''),
+            40
+        )
     )
 
 )
@@ -427,6 +464,13 @@ check_game_complete.extend(
             set_score(has_winner_been_found_score, 1)
         )
     )
+)
+
+send_player_to_lobby = OutputFile("send_player_to_lobby")
+lobby_center = (63.00, 4.00, -28.000, 0, 0)
+send_player_to_lobby.extend(
+    tp(at_s(), lobby_center),
+    raw('clear @s')
 )
 
 spin_revealed = OutputFile("spin_revealed", is_update_file=True)
@@ -478,23 +522,99 @@ for i in range(16):
         set_score_from_other_score(player_turn_id_score, current_player_id_being_assigned, at_s()),
     ))
     assign_player_turn_order.extend(scoreboard_operation(current_player_id_being_assigned, '+=', 1))
-assign_player_turn_order.extend(announce("order has been assigned"))
+# assign_player_turn_order.extend(announce("order has been assigned"))
 
+is_my_turn_score = create_scoreboard("is_my_turn_score")
+show_turn_player_text = OutputFile("show_turn_player_text", is_update_file=True, data=
+    execute_as(at_a(),
+        execute_if_score_equals_score(player_turn_id_score, turn_player_score, owner1=at_s(), to_run=
+            raw('title @s actionbar {"text":"It is your turn","color":"dark_aqua","bold":true,"underlined":true}') +
+            set_score(is_my_turn_score, 1, at_s()) +
+            list_chain(
+                raw_formatted('''item replace entity @s hotbar._r1 with iron_sword{display:{Name:'{"text":"Card Flipper","color":"gray","bold":true,"italic":false}',Lore:['{"text":"Shows an indicator"}','{"text":"when a card"}','{"text":"is in range"}']},Unbreakable:1b}''', i)
+                for i in range(9)
+            )
+        ) +
+        execute_unless_score_equals_score(player_turn_id_score, turn_player_score, owner1=at_s(), to_run=
+            raw('title @s actionbar {"text":"Wait for your turn...","color":"red","bold":true,"underlined":true}') +
+            set_score(is_my_turn_score, 0, at_s()) + 
+            raw("clear @s")
+        )
+    )   
+)
 
 reset_scores = OutputFile("reset_scores")
 reset_scores.extend(
+    remove_scoreboard(player_matches_found_count),
+    set_score(total_turns_taken, 0),
+    add_scoreboard(player_matches_found_count, "Matches Found"),
     set_score(player_matches_found_count, 0, players),
     set_score(has_winner_been_found_score, 0),
+    set_score(current_player_id_being_assigned, 0),
+    raw(f'''scoreboard objectives setdisplay sidebar player_matches_found_count''')
     # set_score(selected_difficulty_score, 0)
 )
 
-end_of_game_code = OutputFile("end_of_game_code")
+# end_of_game_code = OutputFile("end_of_game_code")
+
+start_game = OutputFile("start_game") 
+start_game.extend(
+    # tp(at_a(), element_wise(game_corner, [2, 2, 2])),
+    call_function(run_correct_difficulty, 5),
+    announce("Starting game..."),
+    delay_code_block(
+        gamemode('adventure', at_a()) +
+        tp(at_a(), element_wise(game_corner, [2, 2, 2])) +
+        announce("During your turn, select a card by punching a small white cube outline. Then punch another white outline. If the cards match, both will stay revealed. If not, both cards will be flipped face down."),
+        5
+    )
+)
+
+difficulty_sign_pos = (69, 4, -30)
+start_sign_poses = [
+    (63, 4, -22),
+    (62, 4, -22)
+]
+difficulty_sign = SettingSign(difficulty_sign_pos, 
+'''oak_wall_sign[facing=west]{Text1:'{"text":"Current Difficulty","color":"white"}',Text2:'{"text":"_r1","color":"_r1","bold":true,"clickEvent":{"action":"run_command","value":"scoreboard players operation global selected_difficulty += const1 const"}}',Text4:'{"text":"_r1","color":"_r1"}'} replace''', 
+selected_difficulty_score, 3)
+for difficulty, color, size in ([
+    ("Easy", 'green', '4 x 4'),
+    ("Medium", 'gold', '6 x 6'),
+    ("Hard", 'red', '8 x 8'),
+]):
+    difficulty_sign.append(difficulty, color, size, color)
+
+sign_logic = OutputFile("sign_logic", is_update_file=True)
+sign_logic.extend(
+    difficulty_sign.build()
+    # execute_if_score_equals(selected_difficulty_score, 0,
+    #     setblock(difficulty_sign_pos, AIR) +
+    #     raw_formatted('''setblock _r1 oak_wall_sign[facing=west]{Text1:'{"text":"Current Difficulty","color":"white"}',Text2:'{"text":"Easy","color":"green","bold":true,"clickEvent":{"action":"run_command","value":"scoreboard players operation global selected_difficulty += const1 const"}}',Text4:'{"text":"4 x 4","color":"green"}'} replace''', tuple_to_string(difficulty_sign_pos)),
+    # ),
+    # macro(f"{selected_difficulty_score} %= {NUMBER_OF_DIFFICULTIES}"),
+    # execute_if_score_equals(selected_difficulty_score, 1,
+    #     setblock(difficulty_sign_pos, AIR) +
+    #     raw_formatted('''setblock _r1 oak_wall_sign[facing=west]{Text1:'{"text":"Current Difficulty","color":"white"}',Text2:'{"text":"Medium","color":"gold","bold":true,"clickEvent":{"action":"run_command","value":"scoreboard players operation global selected_difficulty += const1 const"}}',Text4:'{"text":"6 x 6","color":"gold"}'} replace''', tuple_to_string(difficulty_sign_pos)),
+    # ),
+    # macro(f"{selected_difficulty_score} %= {NUMBER_OF_DIFFICULTIES}"),
+    # execute_if_score_equals(selected_difficulty_score, 2,
+    #     setblock(difficulty_sign_pos, AIR) +
+    #     raw_formatted('''setblock _r1 oak_wall_sign[facing=west]{Text1:'{"text":"Current Difficulty","color":"white"}',Text2:'{"text":"Hard","color":"red","bold":true,"clickEvent":{"action":"run_command","value":"scoreboard players operation global selected_difficulty += const1 const"}}',Text4:'{"text":"8 x 8","color":"red"}'} replace''', tuple_to_string(difficulty_sign_pos)),
+    # ),
+    # macro(f"{selected_difficulty_score} %= {NUMBER_OF_DIFFICULTIES}"),
+    # # macro(f"{selected_difficulty_score} += 1"),
+
+
+    
+)
 
 
 for i in range(NUMBER_OF_DIFFICULTIES):
     setup_game = OutputFile(f"setup_game_difficulty{i}")
     setup_game.extend(
         set_score(selected_difficulty_score, i),
+        # announce("Shuffling cards!"),
         call_function(place_card_blocks_holder.get_variant(i)),
         call_function(summon_animals_holder.get_variant(i)),
         call_function(shuffle_mobs_holder.get_variant(i)),
@@ -507,9 +627,11 @@ for i in range(NUMBER_OF_DIFFICULTIES):
 
 end_of_tick_code = OutputFile("end_of_tick_code", is_update_file=True)
 end_of_tick_code.extend(
-    execute_if_score(REVEAL_COOLDOWN_SCORE, "matches 1..", 
-        eval_macro(f"{REVEAL_COOLDOWN_SCORE} -= 1")
-    )
+    decrement_with_bound(REVEAL_COOLDOWN_SCORE, 0)
+    # say("decremented", REVEAL_COOLDOWN_SCORE)
+    # execute_if_score(REVEAL_COOLDOWN_SCORE, "matches 1..", 
+    #     eval_macro(f"{REVEAL_COOLDOWN_SCORE} -= 1")
+    # )
 )
 
 

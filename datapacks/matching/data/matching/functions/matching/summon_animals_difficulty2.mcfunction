@@ -10,7 +10,7 @@ summon turtle 52 -3 76 {Silent:1b,Invulnerable:1b,PersistenceRequired:1b,NoAI:1b
 summon axolotl 52 -3 80 {Silent:1b,Invulnerable:1b,PersistenceRequired:1b,NoAI:1b,Tags:["hidden", "card"]}
 summon evoker 56 -3 52 {Silent:1b,Invulnerable:1b,PersistenceRequired:1b,NoAI:1b,Tags:["hidden", "card"]}
 summon vindicator 56 -3 56 {Silent:1b,Invulnerable:1b,PersistenceRequired:1b,NoAI:1b,Tags:["hidden", "card"]}
-summon illusioner 56 -3 60 {Silent:1b,Invulnerable:1b,PersistenceRequired:1b,NoAI:1b,Tags:["hidden", "card"]}
+summon fox 56 -3 60 {Silent:1b,Invulnerable:1b,PersistenceRequired:1b,NoAI:1b,Tags:["hidden", "card"]}
 summon witch 56 -3 64 {Silent:1b,Invulnerable:1b,PersistenceRequired:1b,NoAI:1b,Tags:["hidden", "card"]}
 summon vex 56 -3 68 {Silent:1b,Invulnerable:1b,PersistenceRequired:1b,NoAI:1b,Tags:["hidden", "card"]}
 summon parrot 56 -3 72 {Silent:1b,Invulnerable:1b,PersistenceRequired:1b,NoAI:1b,Tags:["hidden", "card"]}
@@ -42,7 +42,7 @@ summon turtle 68 -3 76 {Silent:1b,Invulnerable:1b,PersistenceRequired:1b,NoAI:1b
 summon axolotl 68 -3 80 {Silent:1b,Invulnerable:1b,PersistenceRequired:1b,NoAI:1b,Tags:["hidden", "card"]}
 summon evoker 72 -3 52 {Silent:1b,Invulnerable:1b,PersistenceRequired:1b,NoAI:1b,Tags:["hidden", "card"]}
 summon vindicator 72 -3 56 {Silent:1b,Invulnerable:1b,PersistenceRequired:1b,NoAI:1b,Tags:["hidden", "card"]}
-summon illusioner 72 -3 60 {Silent:1b,Invulnerable:1b,PersistenceRequired:1b,NoAI:1b,Tags:["hidden", "card"]}
+summon fox 72 -3 60 {Silent:1b,Invulnerable:1b,PersistenceRequired:1b,NoAI:1b,Tags:["hidden", "card"]}
 summon witch 72 -3 64 {Silent:1b,Invulnerable:1b,PersistenceRequired:1b,NoAI:1b,Tags:["hidden", "card"]}
 summon vex 72 -3 68 {Silent:1b,Invulnerable:1b,PersistenceRequired:1b,NoAI:1b,Tags:["hidden", "card"]}
 summon parrot 72 -3 72 {Silent:1b,Invulnerable:1b,PersistenceRequired:1b,NoAI:1b,Tags:["hidden", "card"]}
@@ -74,7 +74,7 @@ execute as @e[type=turtle] run scoreboard players set @s mob_id 7
 execute as @e[type=axolotl] run scoreboard players set @s mob_id 8
 execute as @e[type=evoker] run scoreboard players set @s mob_id 9
 execute as @e[type=vindicator] run scoreboard players set @s mob_id 10
-execute as @e[type=illusioner] run scoreboard players set @s mob_id 11
+execute as @e[type=fox] run scoreboard players set @s mob_id 11
 execute as @e[type=witch] run scoreboard players set @s mob_id 12
 execute as @e[type=vex] run scoreboard players set @s mob_id 13
 execute as @e[type=parrot] run scoreboard players set @s mob_id 14
@@ -96,4 +96,3 @@ execute as @e[type=mooshroom] run scoreboard players set @s mob_id 29
 execute as @e[type=guardian] run scoreboard players set @s mob_id 30
 execute as @e[type=wolf] run scoreboard players set @s mob_id 31
 execute as @e[type=zombified_piglin] run scoreboard players set @s mob_id 32
-tellraw @a "animals have been placed!"

@@ -1,4 +1,6 @@
+fill 49 0 49 116 6 116 air
 fill 50 0 50 115 -6 115 air replace
+fill 49 0 49 75 6 75 barrier outline
 fill 50 0 50 74 -6 74 stone_bricks hollow
 setblock 50 0 50 yellow_glazed_terracotta[facing=north] replace
 setblock 50 0 74 yellow_glazed_terracotta[facing=north] replace
@@ -100,39 +102,39 @@ setblock 50 0 73 yellow_glazed_terracotta[facing=south] replace
 setblock 74 0 73 yellow_glazed_terracotta[facing=south] replace
 setblock 50 0 74 yellow_glazed_terracotta[facing=north] replace
 setblock 74 0 74 yellow_glazed_terracotta[facing=north] replace
-fill 51 0 51 53 0 53 white_wool
-fill 51 0 55 53 0 57 white_wool
-fill 51 0 59 53 0 61 white_wool
-fill 51 0 63 53 0 65 white_wool
-fill 51 0 67 53 0 69 white_wool
-fill 51 0 71 53 0 73 white_wool
-fill 55 0 51 57 0 53 white_wool
-fill 55 0 55 57 0 57 white_wool
-fill 55 0 59 57 0 61 white_wool
-fill 55 0 63 57 0 65 white_wool
-fill 55 0 67 57 0 69 white_wool
-fill 55 0 71 57 0 73 white_wool
-fill 59 0 51 61 0 53 white_wool
-fill 59 0 55 61 0 57 white_wool
-fill 59 0 59 61 0 61 white_wool
-fill 59 0 63 61 0 65 white_wool
-fill 59 0 67 61 0 69 white_wool
-fill 59 0 71 61 0 73 white_wool
-fill 63 0 51 65 0 53 white_wool
-fill 63 0 55 65 0 57 white_wool
-fill 63 0 59 65 0 61 white_wool
-fill 63 0 63 65 0 65 white_wool
-fill 63 0 67 65 0 69 white_wool
-fill 63 0 71 65 0 73 white_wool
-fill 67 0 51 69 0 53 white_wool
-fill 67 0 55 69 0 57 white_wool
-fill 67 0 59 69 0 61 white_wool
-fill 67 0 63 69 0 65 white_wool
-fill 67 0 67 69 0 69 white_wool
-fill 67 0 71 69 0 73 white_wool
-fill 71 0 51 73 0 53 white_wool
-fill 71 0 55 73 0 57 white_wool
-fill 71 0 59 73 0 61 white_wool
-fill 71 0 63 73 0 65 white_wool
-fill 71 0 67 73 0 69 white_wool
-fill 71 0 71 73 0 73 white_wool
+fill 51 0 51 53 0 53 blue_wool
+fill 51 0 55 53 0 57 blue_wool
+fill 51 0 59 53 0 61 blue_wool
+fill 51 0 63 53 0 65 blue_wool
+fill 51 0 67 53 0 69 blue_wool
+fill 51 0 71 53 0 73 blue_wool
+fill 55 0 51 57 0 53 blue_wool
+fill 55 0 55 57 0 57 blue_wool
+fill 55 0 59 57 0 61 blue_wool
+fill 55 0 63 57 0 65 blue_wool
+fill 55 0 67 57 0 69 blue_wool
+fill 55 0 71 57 0 73 blue_wool
+fill 59 0 51 61 0 53 blue_wool
+fill 59 0 55 61 0 57 blue_wool
+fill 59 0 59 61 0 61 blue_wool
+fill 59 0 63 61 0 65 blue_wool
+fill 59 0 67 61 0 69 blue_wool
+fill 59 0 71 61 0 73 blue_wool
+fill 63 0 51 65 0 53 blue_wool
+fill 63 0 55 65 0 57 blue_wool
+fill 63 0 59 65 0 61 blue_wool
+fill 63 0 63 65 0 65 blue_wool
+fill 63 0 67 65 0 69 blue_wool
+fill 63 0 71 65 0 73 blue_wool
+fill 67 0 51 69 0 53 blue_wool
+fill 67 0 55 69 0 57 blue_wool
+fill 67 0 59 69 0 61 blue_wool
+fill 67 0 63 69 0 65 blue_wool
+fill 67 0 67 69 0 69 blue_wool
+fill 67 0 71 69 0 73 blue_wool
+fill 71 0 51 73 0 53 blue_wool
+fill 71 0 55 73 0 57 blue_wool
+fill 71 0 59 73 0 61 blue_wool
+fill 71 0 63 73 0 65 blue_wool
+fill 71 0 67 73 0 69 blue_wool
+fill 71 0 71 73 0 73 blue_wool

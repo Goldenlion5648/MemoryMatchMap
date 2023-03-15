@@ -322,4 +322,3 @@ tag @e[tag=moving,limit=1] add moved
 tag @e[tag=moving,limit=1] remove moving
 tag @e[tag=dest,limit=1] remove dest
 kill @e[type=marker,tag=shuffle_temp_pos]
-tellraw @a "cards have been shuffled!"

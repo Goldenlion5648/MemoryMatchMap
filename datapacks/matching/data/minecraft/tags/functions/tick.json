@@ -1,15 +1,16 @@
 {
     "replace": false,
     "values": [
-        "matching:matching/main",
-        "matching:matching/update",
+        "matching:matching/helper_update",
+        "matching:matching/shoot_facing_controller",
         "matching:matching/select_card",
-        "matching:matching/spin_revealed",
         "matching:matching/flip_card",
         "matching:matching/check_match",
-        "matching:matching/end_of_tick_code",
-        "matching:matching/helper_update",
         "matching:matching/check_game_complete",
-        "matching:matching/apply_invis"
+        "matching:matching/spin_revealed",
+        "matching:matching/apply_invis",
+        "matching:matching/show_turn_player_text",
+        "matching:matching/sign_logic",
+        "matching:matching/end_of_tick_code"
     ]
 }

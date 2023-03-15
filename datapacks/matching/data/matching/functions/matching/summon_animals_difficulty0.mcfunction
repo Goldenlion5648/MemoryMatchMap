@@ -24,4 +24,3 @@ execute as @e[type=creeper] run scoreboard players set @s mob_id 5
 execute as @e[type=panda] run scoreboard players set @s mob_id 6
 execute as @e[type=turtle] run scoreboard players set @s mob_id 7
 execute as @e[type=axolotl] run scoreboard players set @s mob_id 8
-tellraw @a "animals have been placed!"

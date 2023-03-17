@@ -20,7 +20,6 @@ scoreboard players set const15 const 15
 scoreboard objectives add game_clock dummy 
 scoreboard players set global game_clock 0
 scoreboard objectives add is_make_it_take_it_mode dummy 
-scoreboard players set global is_make_it_take_it_mode 0
 scoreboard objectives add mob_id dummy 
 scoreboard players set global mob_id 0
 scoreboard objectives add selected_count dummy 

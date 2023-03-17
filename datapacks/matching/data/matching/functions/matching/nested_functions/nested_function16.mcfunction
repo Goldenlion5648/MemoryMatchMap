@@ -1,2 +1,3 @@
-function matching:matching/calculate_winner
-scoreboard players set global has_winner_been_found 1
+function matching:matching/celebration_sound
+function matching:matching/win_animation
+schedule function matching:matching/delayed_code/delayed_code_id18 40 append

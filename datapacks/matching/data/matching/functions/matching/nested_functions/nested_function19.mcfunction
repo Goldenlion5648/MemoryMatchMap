@@ -1,2 +1,3 @@
-execute if score @s player_turn_id = global turn_player run function matching:matching/nested_functions/nested_function17
-execute unless score @s player_turn_id = global turn_player run function matching:matching/nested_functions/nested_function18
+title @s actionbar {"text":"Wait for your turn...","color":"red","bold":true,"underlined":true}
+scoreboard players set @s is_my_turn_score 0
+clear @s 

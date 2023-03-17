@@ -1,3 +1,4 @@
+tag @e[tag=hidden] remove moved
 tag @e[tag=hidden,tag=!moved,limit=1] add moving
 execute at @e[tag=moving] run summon marker ~ ~ ~ {Tags:["shuffle_temp_pos"]}
 tag @e[tag=hidden,sort=random,limit=1] add dest

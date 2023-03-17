@@ -2,6 +2,7 @@ import itertools as it
 import os
 import sys
 import json
+import math
 from enum import Enum
 sys.path.insert(0, r'C:\Users\cobou\Documents\Curse\Minecraft\Instances\CommandCreations1_19_2\python_helpers')
 sys.path.insert(0, r'C:\Users\cobou\Desktop\MultiMC\MultiMC\instances\snapshots\.minecraft\python_1_20_helper')
@@ -31,12 +32,18 @@ game_clock_score = "game_clock"
 
 # print(helper_functions.UPDATE_JSON_FILE)
 invisibility_effect = "invisibility"
+lobby_center = (63.00, 4.00, -28.000)
 
 create_scoreboard(game_clock_score, 0)
 increment_each_tick(game_clock_score)
 helper_update.append(f"team join passable {selector_entity(selector='@a',team='!passable')}")
 helper_update.extend(
     effect_give(at_a(), "minecraft:saturation"),
+    execute_at(lobby_center, 
+        execute_as(at_a(distance='..20'),
+            clear(at_s(gamemode='adventure'))
+        )
+    ),
     kill(at_e(type="item"))
     #TODO before release, uncomment
     # raw('gamemode adventure @a')
@@ -54,7 +61,7 @@ facedown_card_block = "blue_wool"
 faceup_card_block = "red_wool"
 complete_card_block = "green_wool"
 selected_difficulty_score = "selected_difficulty"
-is_make_it_take_it_mode = create_scoreboard("is_make_it_take_it_mode", 0)
+is_make_it_take_it_mode_score = create_scoreboard("is_make_it_take_it_mode")
 
 
 unassigned_players = at_e(type='player',score=[(player_turn_id_score, -1)],limit=1,sort='random')
@@ -202,6 +209,9 @@ for difficulty in range(NUMBER_OF_DIFFICULTIES):
         place_slimes.append(f"summon slime {tuple_to_string(element_wise(pos, [1, 1, 1]))} " + '{Silent:1b,Glowing:1b,Team:"passable",PersistenceRequired:1b,NoAI:1b,Size:0,Tags:["'+ f"{Tags.CARD_OUTLINE_TAG}" + '"],ActiveEffects:[{Id:11,Amplifier:55b,Duration:200000000,ShowParticles:0b},{Id:14,Amplifier:1b,Duration:200000000,ShowParticles:0b}]}')
 
     shuffle_mobs.extend(
+        remove_tag(at_e(tag='hidden'), 'moved')
+    )
+    shuffle_mobs.extend(
         fisher_yates_single_pass * len(current_difficulty_animals) * 2
     )
     # execute as @e[tag=moving] run say was moved
@@ -233,7 +243,7 @@ select_card_file.extend(
                 execute_if_score_equals_score(player_turn_id_score, turn_player_score, owner1=at_s(), to_run=
                     execute_as(hit_slime_selector,
                         add_tag("@s", Tags.SELECTED_SLIME_TAG) +
-                        eval_macro(f"{REVEAL_COOLDOWN_SCORE} = 30")
+                        eval_macro(f"{REVEAL_COOLDOWN_SCORE} = 50")
                     )
                 )
             )
@@ -242,6 +252,8 @@ select_card_file.extend(
 )
 def change_card_color(block):
     return f"fill ~-1 ~-1 ~-1 ~1 ~-1 ~1 {block} replace"
+    
+check_match = OutputFile("check_match")
 
 flip_card = OutputFile("flip_card", is_update_file=True)
 flip_card.extend(
@@ -257,10 +269,11 @@ flip_card.extend(
         ) +
         tp(entity_selector(tag=Tags.ANIMAL_CARD,distance="..3"), "~ ~.5 ~") +\
         add_tag("@s", Tags.REVEALED_TAG)
-    )
+    ) + 
+    call_function(check_match)
+
 )
 
-check_match = OutputFile("check_match", is_update_file=True)
 MATCHING_CARDS_COUNT_SCORE = "matching_count"
 check_match.extend(set_score(MATCHING_CARDS_COUNT_SCORE, 0))
 # check if two cards match
@@ -277,10 +290,11 @@ go_to_next_player_turn.extend(
     eval_macro(f"{total_turns_taken} += 1"),
     eval_macro(f"{turn_player_score} += 1"),
     scoreboard_operation(turn_player_score, '%=',total_player_count_score),
+
     execute_unless_score(total_player_count_score, 'matches 1', 
-        announce("moving to next player's turn...") +
+        announce("Moving to next player's turn...") +
         delay_code_block(
-            raw('''/tellraw @a[scores={is_my_turn_score=1}] [{"text":"It is "},{"selector":"@a[scores={is_my_turn_score=1}]","color":"dark_aqua","bold":true},{"text":"'s turn"}]'''),
+            raw('''/tellraw @a [{"text":"It is "},{"selector":"@a[scores={is_my_turn_score=1}]","color":"dark_aqua","bold":true},{"text":"'s turn"}]'''),
             1
         )
     )
@@ -303,7 +317,8 @@ found_match.extend(
                     f"@e[tag={Tags.CARD_OUTLINE_TAG},distance=..2]",
                     smooth_remove("@s")
                 ) +
-                remove_tag("@s", Tags.SELECTED_MOB_TAG)
+                remove_tag("@s", Tags.SELECTED_MOB_TAG) + 
+                remove_tag("@s", Tags.HIDDEN_CARD)
             )
         )
     ) +
@@ -312,7 +327,12 @@ found_match.extend(
         execute_as(players,
             execute_if_score_equals_score(player_turn_id_score, turn_player_score, owner1=at_s(),to_run=
                 scoreboard_operation(player_matches_found_count, '+=', 1, at_s()) +
-                call_function(go_to_next_player_turn)
+                execute_if_score_matches(is_make_it_take_it_mode_score, 0,
+                    call_function(go_to_next_player_turn, 10)
+                ) +
+                execute_if_score_matches(is_make_it_take_it_mode_score, 1,
+                    raw('''/tellraw @a [{"text":"Make it, take it! It is "},{"selector":"@a[scores={is_my_turn_score=1}]","color":"dark_aqua","bold":true},{"text":"'s turn again!"}]'''),
+                )
             )
         )
     )
@@ -325,7 +345,7 @@ found_match.extend(
 put_card_back_down = OutputFile("put_card_back_down")
 put_card_back_down.extend(
     play_sound_at_pitches_based_on_score(REVEAL_COOLDOWN_SCORE, 
-    "block.note_block.bit", [27, 19, 11, 3], [1.7, 1.2, .7, .2]) +
+    "block.note_block.bit", [47, 39, 31, 23], [1.7, 1.2, .7, .2]) +
     execute_if_score_equals(REVEAL_COOLDOWN_SCORE, 1,
         execute_as_at_self(selector_entity(tags=Tags.SELECTED_MOB_TAG),
             tp("@s", selector_entity(type=MARKER_MOB,sort="nearest",limit=1)) +
@@ -337,7 +357,7 @@ put_card_back_down.extend(
             remove_tag("@s", Tags.REVEALED_TAG) +
             remove_tag("@s", Tags.SELECTED_SLIME_TAG)
         ) + 
-        call_function(go_to_next_player_turn)
+        call_function(go_to_next_player_turn, 10)
     )
 )
 
@@ -415,22 +435,18 @@ calculate_winner.extend(
         )
     ),
     execute_if_score_matches(number_of_winners_score, '1', 
-        raw(
-            '''
-            title @a title [{"selector":"__players__","separator":" and ","color":"green","bold":true}]
-            title @a subtitle {"text":"Wins!","color":"green"}
-            '''.replace("__players__", players)
-        ) + 
-        raw(
-            '''
-            tellraw @a [{"selector":"__players__","separator":" and ","color":"green","bold":true}]
-            tellraw @a {"text":"Wins!","color":"green"}
-            '''.replace("__players__", players)
-        ) +
-        # playsound minecraft:block.note_block.chime master @s ~ ~ ~ 1 0.92
-        call_function(celebration_sound) + 
-        call_function(win_animation)
-        
+        execute_as(players,
+            execute_if_score_equals_score(
+                player_matches_found_count, highest_score, 
+                owner1=at_s(),
+                to_run=raw(
+                    '''
+                    title @a title [{"selector":"@s","separator":" and ","color":"green","bold":true}]
+                    title @a subtitle {"text":"Wins!","color":"green"}
+                    '''
+                )
+            )
+        )
     ),
     execute_if_score_matches(number_of_winners_score, '2..', 
         raw(
@@ -446,8 +462,10 @@ calculate_winner.extend(
         )
     ),
     execute_if_score_matches(number_of_winners_score, '1..',
+        call_function(celebration_sound) + 
+        call_function(win_animation) +
         delay_code_block(
-            raw('''tellraw @p [{"text":"The game took "},{"score":{"name":"global","objective":"total_turns_taken"}},{"text":" turns!"}]'''),
+            raw('''tellraw @a [{"text":"The game took "},{"score":{"name":"global","objective":"total_turns_taken"}},{"text":" turns!"}]'''),
             40
         )
     )
@@ -467,9 +485,8 @@ check_game_complete.extend(
 )
 
 send_player_to_lobby = OutputFile("send_player_to_lobby")
-lobby_center = (63.00, 4.00, -28.000, 0, 0)
 send_player_to_lobby.extend(
-    tp(at_s(), lobby_center),
+    tp(at_s(), lobby_center + (0,0)),
     raw('clear @s')
 )
 
@@ -514,7 +531,8 @@ assign_player_turn_order = OutputFile("assign_player_turn_order")
 assign_player_turn_order.extend(
     set_score(turn_player_score, 0),
     set_score(current_player_id_being_assigned, 0),
-    set_score(player_turn_id_score, -1,players),
+    set_score(player_turn_id_score, -1, players),
+
     set_score_to_count_of(total_player_count_score, at_a())
 )
 for i in range(16):
@@ -525,22 +543,25 @@ for i in range(16):
 # assign_player_turn_order.extend(announce("order has been assigned"))
 
 is_my_turn_score = create_scoreboard("is_my_turn_score")
-show_turn_player_text = OutputFile("show_turn_player_text", is_update_file=True, data=
-    execute_as(at_a(),
-        execute_if_score_equals_score(player_turn_id_score, turn_player_score, owner1=at_s(), to_run=
-            raw('title @s actionbar {"text":"It is your turn","color":"dark_aqua","bold":true,"underlined":true}') +
-            set_score(is_my_turn_score, 1, at_s()) +
-            list_chain(
-                raw_formatted('''item replace entity @s hotbar._r1 with iron_sword{display:{Name:'{"text":"Card Flipper","color":"gray","bold":true,"italic":false}',Lore:['{"text":"Shows an indicator"}','{"text":"when a card"}','{"text":"is in range"}']},Unbreakable:1b}''', i)
-                for i in range(9)
+diagonal_board_dist = int(math.dist(high_corners[-1], game_corner)) + 3
+turn_player_code = OutputFile("turn_player_code", is_update_file=True, data=
+    execute_at(high_corners[-1], 
+        execute_as(at_a(distance=diagonal_board_dist),
+            execute_if_score_equals_score(player_turn_id_score, turn_player_score, owner1=at_s(), to_run=
+                raw('title @s actionbar {"text":"It is your turn","color":"dark_aqua","bold":true,"underlined":true}') +
+                set_score(is_my_turn_score, 1, at_s()) +
+                list_chain(
+                    raw_formatted('''item replace entity @s hotbar._r1 with iron_sword{display:{Name:'{"text":"Card Flipper","color":"gray","bold":true,"italic":false}',Lore:['{"text":"Shows an indicator"}','{"text":"when a card"}','{"text":"is in range"}']},Unbreakable:1b}''', i)
+                    for i in range(9)
+                )
+            ) +
+            execute_unless_score_equals_score(player_turn_id_score, turn_player_score, owner1=at_s(), to_run=
+                raw('title @s actionbar {"text":"Wait for your turn...","color":"red","bold":true,"underlined":true}') +
+                set_score(is_my_turn_score, 0, at_s()) + 
+                clear(at_s())
             )
-        ) +
-        execute_unless_score_equals_score(player_turn_id_score, turn_player_score, owner1=at_s(), to_run=
-            raw('title @s actionbar {"text":"Wait for your turn...","color":"red","bold":true,"underlined":true}') +
-            set_score(is_my_turn_score, 0, at_s()) + 
-            raw("clear @s")
-        )
-    )   
+        )   
+    )
 )
 
 reset_scores = OutputFile("reset_scores")
@@ -555,22 +576,66 @@ reset_scores.extend(
     # set_score(selected_difficulty_score, 0)
 )
 
+give_powerups = OutputFile("give_powerups")
+give_powerups.extend(
+
+)
+
+blind_and_freeze_others_effect = OutputFile("blind_and_freeze_others_effect")
+blind_and_freeze_others_effect.extend(
+    execute_as(at_a(distance='0.000001..'), 
+        effect_give(at_s(), "minecraft:jump_boost", 8, 129) +
+        effect_give(at_s(), "minecraft:slowness", 8, 255) +
+        effect_give(at_s(), "minecraft:blindness", 8, 255) +
+        tellraw("Looks like someone doesn't want you to see their moves!", at_s())
+    )
+)
+
 # end_of_game_code = OutputFile("end_of_game_code")
+tp_to_game_corner = OutputFile("tp_to_game_corner",
+    tp(at_p(), element_wise(game_corner, [2, 2, 2]))
+)
+
+enter_existing_game_sign_logic = OutputFile("enter_existing_game_sign_logic", is_update_file=True)
+enter_existing_game_sign_poses = [(62, 3, -22), (63, 3, -22)]
+enter_existing_game_sign_logic.extend(
+    execute_if_score_equals(has_winner_been_found_score, 0, 
+        list_chain(
+            raw_formatted('''setblock _r1 oak_wall_sign[facing=north]{Text2:'{"text":"Enter","color":"green","bold":true,"clickEvent":{"action":"run_command","value":"function matching:matching/tp_to_game_corner"}}',Text3:'{"text":"Current Game","color":"green","bold":true}'}''', tuple_to_string(pos)) for pos in enter_existing_game_sign_poses
+        ), 
+        otherwise=
+        list_chain(
+            raw_formatted('''setblock _r1 air''', tuple_to_string(pos)) for pos in enter_existing_game_sign_poses
+        )
+    )
+    # tp(at_a(), element_wise(game_corner, [2, 2, 2]))
+)
 
 start_game = OutputFile("start_game") 
 start_game.extend(
     # tp(at_a(), element_wise(game_corner, [2, 2, 2])),
-    call_function(run_correct_difficulty, 5),
+    call_function(run_correct_difficulty),
     announce("Starting game..."),
     delay_code_block(
         gamemode('adventure', at_a()) +
-        tp(at_a(), element_wise(game_corner, [2, 2, 2])) +
-        announce("During your turn, select a card by punching a small white cube outline. Then punch another white outline. If the cards match, both will stay revealed. If not, both cards will be flipped face down."),
+        execute_as_at(players, 
+            call_function(tp_to_game_corner)
+        ) + 
+        delay_code_block(
+            announce("During your turn, select a card by punching a small white cube outline."), 5
+        ) +
+        delay_code_block(
+            announce("Then punch another white outline. If the revealed cards (mobs) match, they will stay revealed."), 25
+        ) +
+        delay_code_block(
+            announce("If there is no match, both mobs will be flipped face down."), 45
+        ),
         5
     )
 )
 
 difficulty_sign_pos = (69, 4, -30)
+make_it_take_it_sign_pos = (69, 4, -29)
 start_sign_poses = [
     (63, 4, -22),
     (62, 4, -22)
@@ -578,6 +643,7 @@ start_sign_poses = [
 difficulty_sign = SettingSign(difficulty_sign_pos, 
 '''oak_wall_sign[facing=west]{Text1:'{"text":"Current Difficulty","color":"white"}',Text2:'{"text":"_r1","color":"_r1","bold":true,"clickEvent":{"action":"run_command","value":"scoreboard players operation global selected_difficulty += const1 const"}}',Text4:'{"text":"_r1","color":"_r1"}'} replace''', 
 selected_difficulty_score, 3)
+
 for difficulty, color, size in ([
     ("Easy", 'green', '4 x 4'),
     ("Medium", 'gold', '6 x 6'),
@@ -585,9 +651,16 @@ for difficulty, color, size in ([
 ]):
     difficulty_sign.append(difficulty, color, size, color)
 
+make_it_take_it_sign = SettingSign(make_it_take_it_sign_pos, 
+'''oak_wall_sign[facing=west]{Text2:'{"text":"Make It, Take It","color":"white"}',Text3:'{"text":"_r1","color":"_r1","bold":true,"clickEvent":{"action":"run_command","value":"scoreboard players operation global is_make_it_take_it_mode += const1 const"}}'} replace''', 
+is_make_it_take_it_mode_score, 2)
+make_it_take_it_sign.append("Disabled", 'red')
+make_it_take_it_sign.append("Enabled", 'green')
+
 sign_logic = OutputFile("sign_logic", is_update_file=True)
 sign_logic.extend(
-    difficulty_sign.build()
+    difficulty_sign.build(),
+    make_it_take_it_sign.build()
     # execute_if_score_equals(selected_difficulty_score, 0,
     #     setblock(difficulty_sign_pos, AIR) +
     #     raw_formatted('''setblock _r1 oak_wall_sign[facing=west]{Text1:'{"text":"Current Difficulty","color":"white"}',Text2:'{"text":"Easy","color":"green","bold":true,"clickEvent":{"action":"run_command","value":"scoreboard players operation global selected_difficulty += const1 const"}}',Text4:'{"text":"4 x 4","color":"green"}'} replace''', tuple_to_string(difficulty_sign_pos)),
@@ -636,3 +709,4 @@ end_of_tick_code.extend(
 
 
 # print("here")
+# print(highest_corner)

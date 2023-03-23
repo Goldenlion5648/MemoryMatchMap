@@ -1,3 +1,2 @@
-function matching:matching/celebration_sound
-function matching:matching/win_animation
-schedule function matching:matching/delayed_code/delayed_code_id18 40 append
+scoreboard players operation global number_of_winners += const1 const
+scoreboard players set @s is_winner 1

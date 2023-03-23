@@ -1,2 +1,2 @@
-function matching:matching/calculate_winner
-scoreboard players set global has_winner_been_found 1
+title @a title [{"selector":"@s","separator":" and ","color":"green","bold":true}]
+title @a subtitle {"text":"Wins!","color":"green"}

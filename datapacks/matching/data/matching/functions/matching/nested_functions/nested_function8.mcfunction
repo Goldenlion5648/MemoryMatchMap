@@ -1,3 +1,2 @@
-tp @s @e[limit=1,type=minecraft:marker,sort=nearest]
-kill @e[tag=temp_pos,limit=1,sort=nearest]
-tag @s remove selected_mob
+tellraw @a [{"text":"Make it, take it! It is "},{"selector":"@a[scores={is_my_turn_score=1}]","color":"dark_aqua","bold":true},{"text":"'s turn again!"}]
+scoreboard players operation global total_turns_taken += const1 const

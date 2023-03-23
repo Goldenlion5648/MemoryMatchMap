@@ -9,6 +9,7 @@
         "matching:matching/spin_revealed",
         "matching:matching/apply_invis",
         "matching:matching/turn_player_code",
+        "matching:matching/activate_powerups",
         "matching:matching/enter_existing_game_sign_logic",
         "matching:matching/sign_logic",
         "matching:matching/end_of_tick_code"

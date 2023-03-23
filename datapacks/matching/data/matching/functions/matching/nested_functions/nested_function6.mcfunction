@@ -1,2 +1,3 @@
-fill ~-1 ~-1 ~-1 ~1 ~-1 ~1 green_wool replace
-execute if score global reveal_cooldown matches 1 run function matching:matching/nested_functions/nested_function5
+execute as @e[tag=card_outline,distance=..2] run function matching:matching/nested_functions/nested_function5
+tag @s remove selected_mob
+tag @s remove hidden

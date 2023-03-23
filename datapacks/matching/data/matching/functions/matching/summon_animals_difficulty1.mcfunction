@@ -54,3 +54,5 @@ execute as @e[type=frog] run scoreboard players set @s mob_id 15
 execute as @e[type=llama] run scoreboard players set @s mob_id 16
 execute as @e[type=cod] run scoreboard players set @s mob_id 17
 execute as @e[type=skeleton_horse] run scoreboard players set @s mob_id 18
+execute as @e[tag=card] at @s run summon marker ~ ~ ~ {Tags:["rider"]}
+execute as @e[tag=rider] at @s run ride @s mount @e[tag=card,sort=nearest,limit=1]

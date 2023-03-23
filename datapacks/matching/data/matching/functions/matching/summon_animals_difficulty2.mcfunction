@@ -96,3 +96,5 @@ execute as @e[type=mooshroom] run scoreboard players set @s mob_id 29
 execute as @e[type=guardian] run scoreboard players set @s mob_id 30
 execute as @e[type=wolf] run scoreboard players set @s mob_id 31
 execute as @e[type=zombified_piglin] run scoreboard players set @s mob_id 32
+execute as @e[tag=card] at @s run summon marker ~ ~ ~ {Tags:["rider"]}
+execute as @e[tag=rider] at @s run ride @s mount @e[tag=card,sort=nearest,limit=1]

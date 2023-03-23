@@ -1,11 +1,4 @@
-title @s actionbar {"text":"It is your turn","color":"dark_aqua","bold":true,"underlined":true}
-scoreboard players set @s is_my_turn_score 1
-item replace entity @s hotbar.0 with iron_sword{display:{Name:'{"text":"Card Flipper","color":"gray","bold":true,"italic":false}',Lore:['{"text":"Shows an indicator"}','{"text":"when a card"}','{"text":"is in range"}']},Unbreakable:1b}
-item replace entity @s hotbar.1 with iron_sword{display:{Name:'{"text":"Card Flipper","color":"gray","bold":true,"italic":false}',Lore:['{"text":"Shows an indicator"}','{"text":"when a card"}','{"text":"is in range"}']},Unbreakable:1b}
-item replace entity @s hotbar.2 with iron_sword{display:{Name:'{"text":"Card Flipper","color":"gray","bold":true,"italic":false}',Lore:['{"text":"Shows an indicator"}','{"text":"when a card"}','{"text":"is in range"}']},Unbreakable:1b}
-item replace entity @s hotbar.3 with iron_sword{display:{Name:'{"text":"Card Flipper","color":"gray","bold":true,"italic":false}',Lore:['{"text":"Shows an indicator"}','{"text":"when a card"}','{"text":"is in range"}']},Unbreakable:1b}
-item replace entity @s hotbar.4 with iron_sword{display:{Name:'{"text":"Card Flipper","color":"gray","bold":true,"italic":false}',Lore:['{"text":"Shows an indicator"}','{"text":"when a card"}','{"text":"is in range"}']},Unbreakable:1b}
-item replace entity @s hotbar.5 with iron_sword{display:{Name:'{"text":"Card Flipper","color":"gray","bold":true,"italic":false}',Lore:['{"text":"Shows an indicator"}','{"text":"when a card"}','{"text":"is in range"}']},Unbreakable:1b}
-item replace entity @s hotbar.6 with iron_sword{display:{Name:'{"text":"Card Flipper","color":"gray","bold":true,"italic":false}',Lore:['{"text":"Shows an indicator"}','{"text":"when a card"}','{"text":"is in range"}']},Unbreakable:1b}
-item replace entity @s hotbar.7 with iron_sword{display:{Name:'{"text":"Card Flipper","color":"gray","bold":true,"italic":false}',Lore:['{"text":"Shows an indicator"}','{"text":"when a card"}','{"text":"is in range"}']},Unbreakable:1b}
-item replace entity @s hotbar.8 with iron_sword{display:{Name:'{"text":"Card Flipper","color":"gray","bold":true,"italic":false}',Lore:['{"text":"Shows an indicator"}','{"text":"when a card"}','{"text":"is in range"}']},Unbreakable:1b}
+title @a title [{"selector":"@a[scores={is_winner_score=1}]","separator":" and ","color":"#FF822E","bold":true}]
+title @a subtitle {"text":"Tied!","color":"#FF822E"}
+tellraw @a [{"selector":"@a[scores={is_winner_score=1}]","separator":" and ","color":"#FF822E","bold":true}]
+tellraw @a {"text":"Tied!","color":"#FF822E"}

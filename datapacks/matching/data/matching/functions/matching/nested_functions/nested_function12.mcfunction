@@ -1,4 +1,3 @@
-execute positioned 50 4 50 run summon firework_rocket ~ ~ ~ {FireworksItem:{id:"firework_rocket",Count:1,tag:{Fireworks:{Explosions:[{Type:2,Flicker:1b,Trail:1b,Colors:[I;15086110,5205247],FadeColors:[I;16772075]}]}}}}
-execute positioned 50 4 73 run summon firework_rocket ~ ~ ~ {FireworksItem:{id:"firework_rocket",Count:1,tag:{Fireworks:{Explosions:[{Type:2,Flicker:1b,Trail:1b,Colors:[I;15086110,5205247],FadeColors:[I;16772075]}]}}}}
-execute positioned 73 4 50 run summon firework_rocket ~ ~ ~ {FireworksItem:{id:"firework_rocket",Count:1,tag:{Fireworks:{Explosions:[{Type:2,Flicker:1b,Trail:1b,Colors:[I;15086110,5205247],FadeColors:[I;16772075]}]}}}}
-execute positioned 73 4 73 run summon firework_rocket ~ ~ ~ {FireworksItem:{id:"firework_rocket",Count:1,tag:{Fireworks:{Explosions:[{Type:2,Flicker:1b,Trail:1b,Colors:[I;15086110,5205247],FadeColors:[I;16772075]}]}}}}
+execute as @e[tag=selected_mob] at @s run function matching:matching/nested_functions/nested_function10
+execute as @e[tag=selected_slime] at @s run function matching:matching/nested_functions/nested_function11
+function matching:matching/go_to_next_player_turn

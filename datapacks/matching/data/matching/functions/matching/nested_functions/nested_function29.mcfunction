@@ -1,0 +1,2 @@
+setblock 62 3 -22 oak_wall_sign[facing=north]{Text2:'{"text":"Enter","color":"green","bold":true,"clickEvent":{"action":"run_command","value":"function matching:matching/tp_to_game_corner"}}',Text3:'{"text":"Current Game","color":"green","bold":true}'}
+setblock 63 3 -22 oak_wall_sign[facing=north]{Text2:'{"text":"Enter","color":"green","bold":true,"clickEvent":{"action":"run_command","value":"function matching:matching/tp_to_game_corner"}}',Text3:'{"text":"Current Game","color":"green","bold":true}'}

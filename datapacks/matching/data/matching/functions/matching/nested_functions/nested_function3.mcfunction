@@ -1,2 +1,2 @@
-tellraw @a "Moving to next player's turn..."
-schedule function matching:matching/delayed_code/delayed_code_id1 1 append
+tellraw @a "looks like that player left, skipping their turn"
+function matching:matching/go_to_next_player_turn

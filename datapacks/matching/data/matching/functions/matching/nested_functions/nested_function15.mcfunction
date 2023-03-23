@@ -1,4 +1,4 @@
-title @a title [{"selector":"@a","separator":" and ","color":"#FF822E","bold":true}]
-title @a subtitle {"text":"Tied!","color":"#FF822E"}
-tellraw @a [{"selector":"@a","separator":" and ","color":"#FF822E","bold":true}]
-tellraw @a {"text":"Tied!","color":"#FF822E"}
+execute positioned 50 4 50 run summon firework_rocket ~ ~ ~ {FireworksItem:{id:"firework_rocket",Count:1,tag:{Fireworks:{Explosions:[{Type:2,Flicker:1b,Trail:1b,Colors:[I;15086110,5205247],FadeColors:[I;16772075]}]}}}}
+execute positioned 50 4 81 run summon firework_rocket ~ ~ ~ {FireworksItem:{id:"firework_rocket",Count:1,tag:{Fireworks:{Explosions:[{Type:2,Flicker:1b,Trail:1b,Colors:[I;15086110,5205247],FadeColors:[I;16772075]}]}}}}
+execute positioned 81 4 50 run summon firework_rocket ~ ~ ~ {FireworksItem:{id:"firework_rocket",Count:1,tag:{Fireworks:{Explosions:[{Type:2,Flicker:1b,Trail:1b,Colors:[I;15086110,5205247],FadeColors:[I;16772075]}]}}}}
+execute positioned 81 4 81 run summon firework_rocket ~ ~ ~ {FireworksItem:{id:"firework_rocket",Count:1,tag:{Fireworks:{Explosions:[{Type:2,Flicker:1b,Trail:1b,Colors:[I;15086110,5205247],FadeColors:[I;16772075]}]}}}}

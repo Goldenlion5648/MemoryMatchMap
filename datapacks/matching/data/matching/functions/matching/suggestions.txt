@@ -1,0 +1,15 @@
+<!-- add more delay before going down -->
+<!-- checkerboard -->
+<!-- race condition -->
+<!-- check sword in hand -->
+
+two glow, one guaranteed to right
+
+<!-- spin less often -->
+player logging out mid game bug
+<!-- fix riding lambda -->
+
+<!-- tie shows all players won bug -->
+
+timed turns
+chaos mode

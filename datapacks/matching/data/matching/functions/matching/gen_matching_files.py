@@ -22,7 +22,7 @@ class Tags(Enum):
     SHUFFLE_DESTINATION = "dest"
     SHUFFLE_CURRENT_MOVING = "moving"
     HIDDEN_CARD = "hidden"
-    REVEAL_CARD_TEMP_POS_TAG = "temp_pos"
+    REVEAL_CARD_TEMP_POS_TAG = "face_down_temp_pos"
     SPIN_DELAY_TAG = "spin_delay"
 
     def __str__(self):
@@ -57,11 +57,12 @@ current_player_id_being_assigned = "current_player_id_being_assigned"
 times_left_to_run = "times_left_to_run"
 player_matches_found_count = "player_matches_found_count"
 highest_score = "highest_score"
-facedown_card_block = "blue_wool"
+facedown_card_blocks = ["purple_wool", "black_wool"]
 faceup_card_block = "red_wool"
 complete_card_block = "green_wool"
 selected_difficulty_score = "selected_difficulty"
 is_make_it_take_it_mode_score = create_scoreboard("is_make_it_take_it_mode")
+is_winner_score = create_scoreboard("is_winner")
 
 
 unassigned_players = at_e(type='player',score=[(player_turn_id_score, -1)],limit=1,sort='random')
@@ -109,9 +110,9 @@ SMALLEST_BOARD_DIM = 4
 tile_dim = 3
 
 
-fisher_yates_single_pass = f'''tag @e[tag=hidden,tag=!moved,limit=1] add moving
+fisher_yates_single_pass = f'''tag @e[tag=hidden,tag=!moved,tag=!{Tags.SELECTED_MOB_TAG},limit=1] add moving
 execute at @e[tag=moving] run summon marker ~ ~ ~ {{Tags:["{Tags.SHUFFLE_TEMP_POS}"]}}
-tag @e[tag=hidden,sort=random,limit=1] add dest
+tag @e[tag=hidden,tag=!{Tags.SELECTED_MOB_TAG},sort=random,limit=1] add dest
 execute as @e[tag=moving,limit=1] run tp @s @e[tag=dest,limit=1]
 execute as @e[tag=dest,limit=1] run tp @s @e[type=marker,tag={Tags.SHUFFLE_TEMP_POS},limit=1]
 tag @e[tag=moving,limit=1] add moved
@@ -148,9 +149,9 @@ for difficulty in range(NUMBER_OF_DIFFICULTIES):
             highest_corner = (x + tile_dim, game_corner[1], z + tile_dim)
 
             temp_card_tile_commands.append(
-                f"fill {corner_x} {game_corner[1]} {corner_z} {tuple_to_string(highest_corner)} {facedown_card_block}"
+                f"fill {corner_x} {game_corner[1]} {corner_z} {tuple_to_string(highest_corner)} {facedown_card_blocks[(x_counter + z_counter) % 2]}"
             )
-
+    
     
     highest_board_dim = SMALLEST_BOARD_DIM + (NUMBER_OF_DIFFICULTIES-1) * 2
     high_corners = [
@@ -165,6 +166,7 @@ for difficulty in range(NUMBER_OF_DIFFICULTIES):
 
     # first clears the largest possible area (if last difficulty played was
     # the hardest).
+    box_height = 6
     for high_corner, block, mode in zip(high_corners, [AIR, "stone_bricks"], ["replace", "hollow"]):
         upper_shield_pos1 = tuple_to_string(element_wise(game_corner, [-1, 0, -1]))
         upper_shield_pos2 = tuple_to_string(element_wise(high_corner, [2, 6, 2]))
@@ -172,12 +174,13 @@ for difficulty in range(NUMBER_OF_DIFFICULTIES):
             place_card_blocks.append(f"fill {upper_shield_pos1} {upper_shield_pos2} air")
         else:
             place_card_blocks.append(f"fill {upper_shield_pos1} {upper_shield_pos2} barrier outline")
-        place_card_blocks.append(f"fill {tuple_to_string(game_corner)} {tuple_to_string(element_wise(high_corner, [1, -6, 1]))} {block} {mode}")
+        place_card_blocks.append(f"fill {tuple_to_string(game_corner)} {tuple_to_string(element_wise(high_corner, [1, -box_height, 1]))} {block} {mode}")
     # place_card_blocks.append(f"fill {tuple_to_string(game_corner)} {tuple_to_string(element_wise(high_corner, [1, -6, 1]))} barrier outline")
 
     outline_block = "yellow_glazed_terracotta"
     high_game_corner = element_wise(high_corner, [1, 0, 1])
     facing_order = ["north", "east", "west", "south"]
+
     # place border rows
     for x, facing in zip(range(game_corner[0], high_game_corner[0] + 1), it.cycle(facing_order)):
         for main_z in [game_corner[2], high_game_corner[2]]:
@@ -191,6 +194,9 @@ for difficulty in range(NUMBER_OF_DIFFICULTIES):
     # place_card_blocks.append(f"fill {tuple_to_string(game_corner)} {tuple_to_string()} {outline_block} outline")
 
     place_card_blocks.extend(temp_card_tile_commands)
+    place_card_blocks.extend(
+        clone(game_corner, high_game_corner, element_wise(game_corner, [0,-box_height, 0]))
+    )
     summon_animals.extend(smooth_remove(entity_selector(tag=Tags.ANIMAL_CARD.value)))
     create_scoreboard("mob_id", 0)
 
@@ -202,11 +208,20 @@ for difficulty in range(NUMBER_OF_DIFFICULTIES):
         )
     for i, animal in enumerate(current_difficulty_animals, 1):
         summon_animals.append(f"execute as @e[type={animal}] run scoreboard players set @s mob_id {i}")
+    rider_tag= 'rider'
+    summon_animals.extend(
+        execute_as_at(at_e(tag=Tags.ANIMAL_CARD),
+            summon('marker', HERE, [rider_tag])
+        ) +
+        execute_as_at(at_e(tag=rider_tag), 
+            raw('''ride @s mount @e[tag=card,sort=nearest,limit=1]''')
+        )
+    )
     # summon_animals.append('tellraw @a "animals have been placed!"')
 
     place_slimes.append("tp @e[type=minecraft:slime] ~ ~-400 ~")
     for pos in tile_lower_corners:
-        place_slimes.append(f"summon slime {tuple_to_string(element_wise(pos, [1, 1, 1]))} " + '{Silent:1b,Glowing:1b,Team:"passable",PersistenceRequired:1b,NoAI:1b,Size:0,Tags:["'+ f"{Tags.CARD_OUTLINE_TAG}" + '"],ActiveEffects:[{Id:11,Amplifier:55b,Duration:200000000,ShowParticles:0b},{Id:14,Amplifier:1b,Duration:200000000,ShowParticles:0b}]}')
+        place_slimes.append(f"summon slime {tuple_to_string(element_wise(pos, [1, 1, 1]))} " + '{Silent:1b,Glowing:1b,Team:"passable",PersistenceRequired:1b,NoAI:1b,Size:0,Tags:["'+ f"{Tags.CARD_OUTLINE_TAG}" + '"],ActiveEffects:[{Id:11,Amplifier:55b,Duration:-1,ShowParticles:0b},{Id:14,Amplifier:1b,Duration:-1,ShowParticles:0b}]}')
 
     shuffle_mobs.extend(
         remove_tag(at_e(tag='hidden'), 'moved')
@@ -227,23 +242,27 @@ for difficulty in range(NUMBER_OF_DIFFICULTIES):
 
 select_card_file = OutputFile("select_card", is_update_file=True)
 # create_scoreboard("selected_count")
-NUM_CARDS_SELECTED_COUNT_SCORE = "selected_count"
-# select_card_file.append(set_score_from(NUM_CARDS_SELECTED_COUNT_SCORE, f"if entity @e[tag={Tags.SELECTED_SLIME_TAG}]"))
-select_card_file.extend(set_score_to_count_of(NUM_CARDS_SELECTED_COUNT_SCORE, selector_entity(tag=Tags.SELECTED_SLIME_TAG)))
-
+NUM_CARDS_SELECTED_COUNT_SCORE = create_scoreboard("selected_count")
 REVEAL_COOLDOWN_SCORE = 'reveal_cooldown'
+REVEAL_COOLDOWN_SCORE_TIME_TO_SET_TO = 70
+TURN_SWITCH_COOLDOWN = create_scoreboard("turn_switch_cooldown")
 
 hit_slime_selector = f"@e[tag={Tags.CARD_OUTLINE_TAG}," + "nbt={HurtTime:10s}]"
 select_card_file.extend(
+    set_score_to_count_of(NUM_CARDS_SELECTED_COUNT_SCORE, selector_entity(tag=Tags.SELECTED_SLIME_TAG)),
     execute_if_score(NUM_CARDS_SELECTED_COUNT_SCORE, "matches 0..1",
         execute_as(hit_slime_selector,
         # execute as @e[type=minecraft:slime,sort=nearest,limit=1] run execute on attacker run execute if score @s player_turn_id = global turn_player run say yes, it was your turn
         # execute_as(at_e(tag=Tags.SELECTED_SLIME_TAG))
-            execute_on("attacker",
-                execute_if_score_equals_score(player_turn_id_score, turn_player_score, owner1=at_s(), to_run=
-                    execute_as(hit_slime_selector,
-                        add_tag("@s", Tags.SELECTED_SLIME_TAG) +
-                        eval_macro(f"{REVEAL_COOLDOWN_SCORE} = 50")
+            execute_if_score_equals(TURN_SWITCH_COOLDOWN, 0,
+                execute_on("attacker",
+                    execute_if_score_equals_score(player_turn_id_score, turn_player_score, owner1=at_s(), to_run=
+                        execute_as('@s[nbt={SelectedItem:{id:"minecraft:iron_sword"}}]',
+                            execute_as(hit_slime_selector,
+                                add_tag("@s", Tags.SELECTED_SLIME_TAG) +
+                                eval_macro(f"{REVEAL_COOLDOWN_SCORE} = {REVEAL_COOLDOWN_SCORE_TIME_TO_SET_TO}")
+                            )
+                        )
                     )
                 )
             )
@@ -257,7 +276,7 @@ check_match = OutputFile("check_match")
 
 flip_card = OutputFile("flip_card", is_update_file=True)
 flip_card.extend(
-    execute_as(f"@e[tag={Tags.SELECTED_SLIME_TAG},tag=!{Tags.REVEALED_TAG}] at @s",
+    execute_as(f"@e[type=slime,tag={Tags.SELECTED_SLIME_TAG},tag=!{Tags.REVEALED_TAG}] at @s",
         [change_card_color(faceup_card_block)] +
         execute_positioned("~ ~-4 ~", 
             summon_delay_cloud(4, Tags.SPIN_DELAY_TAG) +
@@ -267,7 +286,7 @@ flip_card.extend(
             ) + 
             tp(entity_selector(tag=Tags.ANIMAL_CARD,distance="..3"), "@s")
         ) +
-        tp(entity_selector(tag=Tags.ANIMAL_CARD,distance="..3"), "~ ~.5 ~") +\
+        tp(entity_selector(tag=Tags.ANIMAL_CARD,distance="..3"), "~ ~.5 ~") +
         add_tag("@s", Tags.REVEALED_TAG)
     ) + 
     call_function(check_match)
@@ -286,7 +305,9 @@ for animal in animals:
 
 total_turns_taken = create_scoreboard("total_turns_taken")
 go_to_next_player_turn = OutputFile("go_to_next_player_turn")
+TURN_SWITCH_COOLDOWN_TIME_TO_SET_TO = 10
 go_to_next_player_turn.extend(
+    set_score(TURN_SWITCH_COOLDOWN, TURN_SWITCH_COOLDOWN_TIME_TO_SET_TO) + 
     eval_macro(f"{total_turns_taken} += 1"),
     eval_macro(f"{turn_player_score} += 1"),
     scoreboard_operation(turn_player_score, '%=',total_player_count_score),
@@ -294,8 +315,14 @@ go_to_next_player_turn.extend(
     execute_unless_score(total_player_count_score, 'matches 1', 
         announce("Moving to next player's turn...") +
         delay_code_block(
-            raw('''/tellraw @a [{"text":"It is "},{"selector":"@a[scores={is_my_turn_score=1}]","color":"dark_aqua","bold":true},{"text":"'s turn"}]'''),
-            1
+            execute_if_entity('@a[scores={is_my_turn_score=1}]', 
+                raw('''/tellraw @a [{"text":"It is "},{"selector":"@a[scores={is_my_turn_score=1}]","color":"dark_aqua","bold":true},{"text":"'s turn"}]''')
+            ) +
+            execute_unless_entity('@a[scores={is_my_turn_score=1}]', 
+                announce("looks like that player left, skipping their turn") +
+                call_function(go_to_next_player_turn)
+            ),
+            delay_time=TURN_SWITCH_COOLDOWN_TIME_TO_SET_TO + 1
         )
     )
     # announce("Make it, take it! Your move again!")
@@ -322,42 +349,49 @@ found_match.extend(
             )
         )
     ) +
-    play_sound_at_pitches_based_on_score(REVEAL_COOLDOWN_SCORE, "minecraft:block.note_block.chime", [3, 11, 19, 27], [1.3, 1, .7, .4]) + 
+    play_sound_at_pitches_based_on_score(REVEAL_COOLDOWN_SCORE, "minecraft:block.note_block.chime", [x + 30 for x in [3, 11, 19, 27]], [1.3, 1, .7, .4]) + 
     execute_if_score_equals(REVEAL_COOLDOWN_SCORE, 1,
         execute_as(players,
             execute_if_score_equals_score(player_turn_id_score, turn_player_score, owner1=at_s(),to_run=
                 scoreboard_operation(player_matches_found_count, '+=', 1, at_s()) +
                 execute_if_score_matches(is_make_it_take_it_mode_score, 0,
-                    call_function(go_to_next_player_turn, 10)
+                    call_function(go_to_next_player_turn)
                 ) +
+                
                 execute_if_score_matches(is_make_it_take_it_mode_score, 1,
-                    raw('''/tellraw @a [{"text":"Make it, take it! It is "},{"selector":"@a[scores={is_my_turn_score=1}]","color":"dark_aqua","bold":true},{"text":"'s turn again!"}]'''),
+                    raw('''/tellraw @a [{"text":"Make it, take it! It is "},{"selector":"@a[scores={is_my_turn_score=1}]","color":"dark_aqua","bold":true},{"text":"'s turn again!"}]''') +
+                    increment(total_turns_taken) 
                 )
             )
         )
     )
 )
 
-# found_match.append("say running found_match1")
-# found_match.append("say running found_match2")
 
-
+pos_marker_tag = 'pos_marker'
 put_card_back_down = OutputFile("put_card_back_down")
+period = 10
+sound_play_times_and_pitches = [
+    (time * period, .2*(time+1))
+    for time in range(REVEAL_COOLDOWN_SCORE_TIME_TO_SET_TO // period )
+]
+# [x + 10 for x in [47, 39, 31, 23]], [1.7, 1.2, .7, .2]
 put_card_back_down.extend(
     play_sound_at_pitches_based_on_score(REVEAL_COOLDOWN_SCORE, 
-    "block.note_block.bit", [47, 39, 31, 23], [1.7, 1.2, .7, .2]) +
+    "block.note_block.bit", *zip(*sound_play_times_and_pitches)) +
     execute_if_score_equals(REVEAL_COOLDOWN_SCORE, 1,
         execute_as_at_self(selector_entity(tags=Tags.SELECTED_MOB_TAG),
-            tp("@s", selector_entity(type=MARKER_MOB,sort="nearest",limit=1)) +
+            tp("@s", selector_entity(type=MARKER_MOB,sort="nearest",limit=1,tag=Tags.REVEAL_CARD_TEMP_POS_TAG)) +
             kill(selector_entity(tag=Tags.REVEAL_CARD_TEMP_POS_TAG,sort='nearest',limit=1)) + 
             remove_tag("@s", Tags.SELECTED_MOB_TAG)
         ) +
         execute_as_at_self(selector_entity(tag=Tags.SELECTED_SLIME_TAG), 
-            [change_card_color(facedown_card_block)] +
+            # [change_card_color(facedown_card_blocks)] +
+            clone(f"~-1 ~-{box_height + 1} ~-1", f"~1 ~-{box_height + 1} ~1", "~-1 ~-1 ~-1") +
             remove_tag("@s", Tags.REVEALED_TAG) +
             remove_tag("@s", Tags.SELECTED_SLIME_TAG)
         ) + 
-        call_function(go_to_next_player_turn, 10)
+        call_function(go_to_next_player_turn)
     )
 )
 
@@ -431,7 +465,8 @@ calculate_winner.extend(
     set_score(number_of_winners_score, 0),
     execute_as(players, 
         execute_if_score_equals_score(player_matches_found_count, highest_score, owner1=at_s(), to_run=
-            scoreboard_operation(number_of_winners_score, '+=', 1)
+            scoreboard_operation(number_of_winners_score, '+=', 1) +
+            set_score(is_winner_score, 1, at_s())
         )
     ),
     execute_if_score_matches(number_of_winners_score, '1', 
@@ -451,14 +486,14 @@ calculate_winner.extend(
     execute_if_score_matches(number_of_winners_score, '2..', 
         raw(
             '''
-            title @a title [{"selector":"__players__","separator":" and ","color":"#FF822E","bold":true}]
+            title @a title [{"selector":"@a[scores={is_winner_score=1}]","separator":" and ","color":"#FF822E","bold":true}]
             title @a subtitle {"text":"Tied!","color":"#FF822E"}
-            '''.replace("__players__", players)
+            '''
         ) + raw(
             '''
-            tellraw @a [{"selector":"__players__","separator":" and ","color":"#FF822E","bold":true}]
+            tellraw @a [{"selector":"@a[scores={is_winner_score=1}]","separator":" and ","color":"#FF822E","bold":true}]
             tellraw @a {"text":"Tied!","color":"#FF822E"}
-            '''.replace("__players__", players)
+            '''
         )
     ),
     execute_if_score_matches(number_of_winners_score, '1..',
@@ -492,11 +527,13 @@ send_player_to_lobby.extend(
 
 spin_revealed = OutputFile("spin_revealed", is_update_file=True)
 spin_revealed.extend(
-    run_when_tag_gone(Tags.SPIN_DELAY_TAG,
-        execute_as_at_self(entity_selector(tag=Tags.SELECTED_MOB_TAG),
-            # execute_if_divisible(game_clock_score, 5, 0, 
-                "tp @s ~ ~ ~ ~45 ~"
-            # )
+    execute_if_divisible(game_clock_score, 3, 0, 
+        run_when_tag_gone(Tags.SPIN_DELAY_TAG,
+            execute_as_at_self(entity_selector(tag=Tags.SELECTED_MOB_TAG),
+                # execute_if_divisible(game_clock_score, 5, 0, 
+                    "tp @s ~ ~ ~ ~90 ~"
+                # )
+            )
         )
     )
     #     "tp @s ~ ~ ~ ~30 ~"
@@ -548,11 +585,14 @@ turn_player_code = OutputFile("turn_player_code", is_update_file=True, data=
     execute_at(high_corners[-1], 
         execute_as(at_a(distance=diagonal_board_dist),
             execute_if_score_equals_score(player_turn_id_score, turn_player_score, owner1=at_s(), to_run=
-                raw('title @s actionbar {"text":"It is your turn","color":"dark_aqua","bold":true,"underlined":true}') +
+                set_score(is_my_turn_score, 0, players) +
                 set_score(is_my_turn_score, 1, at_s()) +
-                list_chain(
-                    raw_formatted('''item replace entity @s hotbar._r1 with iron_sword{display:{Name:'{"text":"Card Flipper","color":"gray","bold":true,"italic":false}',Lore:['{"text":"Shows an indicator"}','{"text":"when a card"}','{"text":"is in range"}']},Unbreakable:1b}''', i)
-                    for i in range(9)
+                execute_if_score_equals(TURN_SWITCH_COOLDOWN, 0,
+                    raw('title @s actionbar {"text":"It is your turn","color":"dark_aqua","bold":true,"underlined":true}') +
+                    list_chain(
+                        raw_formatted('''item replace entity @s hotbar._r1 with iron_sword{display:{Name:'{"text":"Card Flipper","color":"gray","bold":true,"italic":false}',Lore:['{"text":"Shows an indicator"}','{"text":"when a card"}','{"text":"is in range"}']},Unbreakable:1b}''', i)
+                        for i in range(9)
+                    )
                 )
             ) +
             execute_unless_score_equals_score(player_turn_id_score, turn_player_score, owner1=at_s(), to_run=
@@ -565,11 +605,16 @@ turn_player_code = OutputFile("turn_player_code", is_update_file=True, data=
 )
 
 reset_scores = OutputFile("reset_scores")
+used_blindness_score = create_scoreboard("used_blindness")
+used_shuffle_score = create_scoreboard("used_shuffle")
 reset_scores.extend(
     remove_scoreboard(player_matches_found_count),
     set_score(total_turns_taken, 0),
     add_scoreboard(player_matches_found_count, "Matches Found"),
     set_score(player_matches_found_count, 0, players),
+    set_score(used_blindness_score, 0, players),
+    set_score(used_shuffle_score, 0, players),
+    set_score(is_winner_score, 0, players),
     set_score(has_winner_been_found_score, 0),
     set_score(current_player_id_being_assigned, 0),
     raw(f'''scoreboard objectives setdisplay sidebar player_matches_found_count''')
@@ -581,13 +626,37 @@ give_powerups.extend(
 
 )
 
+
 blind_and_freeze_others_effect = OutputFile("blind_and_freeze_others_effect")
 blind_and_freeze_others_effect.extend(
     execute_as(at_a(distance='0.000001..'), 
         effect_give(at_s(), "minecraft:jump_boost", 8, 129) +
         effect_give(at_s(), "minecraft:slowness", 8, 255) +
-        effect_give(at_s(), "minecraft:blindness", 8, 255) +
-        tellraw("Looks like someone doesn't want you to see their moves!", at_s())
+        effect_give(at_s(), "minecraft:blindness", 8, 255)
+        # tellraw("Looks like someone doesn't want you to see their moves!", at_s())
+    ) +
+    raw('''/tellraw @a [{"selector":"@s"},{"text":" blinded everyone!"}]''')
+)
+
+activate_powerups = OutputFile("activate_powerups", is_update_file=True)
+
+score_to_powerup = {
+    used_blindness_score : blind_and_freeze_others_effect,
+    used_shuffle_score : shuffle_mobs_holder.get_variant(-1),
+}
+
+powerup_mob_tag = 'powerup'
+activate_powerups.extend(
+    execute_as_at(at_a(),
+        list_chain(
+            execute_if_score(score, 'matches 1..', owner=at_s(),
+            to_run=
+                call_function(powerup) +
+                set_score(score, 0, at_s()) + 
+                smooth_remove(at_e(tag=powerup_mob_tag))
+            )
+            for score, powerup in score_to_powerup.items()
+        )
     )
 )
 
@@ -612,6 +681,13 @@ enter_existing_game_sign_logic.extend(
 )
 
 start_game = OutputFile("start_game") 
+
+rule_explanation = [
+    "During your turn, select a card by punching a small white cube outline.",
+    "Then punch another white outline. If the revealed cards (mobs) match, they will stay revealed.",
+    "If there is no match, both mobs will be flipped face down."
+]
+
 start_game.extend(
     # tp(at_a(), element_wise(game_corner, [2, 2, 2])),
     call_function(run_correct_difficulty),
@@ -621,16 +697,12 @@ start_game.extend(
         execute_as_at(players, 
             call_function(tp_to_game_corner)
         ) + 
-        delay_code_block(
-            announce("During your turn, select a card by punching a small white cube outline."), 5
-        ) +
-        delay_code_block(
-            announce("Then punch another white outline. If the revealed cards (mobs) match, they will stay revealed."), 25
-        ) +
-        delay_code_block(
-            announce("If there is no match, both mobs will be flipped face down."), 45
+        list_chain(
+            delay_code_block(
+                announce(line), i*35
+            ) for i, line in enumerate(rule_explanation)
         ),
-        5
+        delay_time=5
     )
 )
 
@@ -694,13 +766,14 @@ for i in range(NUMBER_OF_DIFFICULTIES):
         call_function(place_slimes_holder.get_variant(i)),
         call_function(reset_scores),
         call_function(assign_player_turn_order),
-        smooth_remove(selector_entity(type=MARKER_MOB))
+        smooth_remove(selector_entity(type=MARKER_MOB, tag=f'!{rider_tag}'))
     )
 
 
 end_of_tick_code = OutputFile("end_of_tick_code", is_update_file=True)
 end_of_tick_code.extend(
-    decrement_with_bound(REVEAL_COOLDOWN_SCORE, 0)
+    decrement_with_bound(REVEAL_COOLDOWN_SCORE, 0),
+    decrement_with_bound(TURN_SWITCH_COOLDOWN, 0)
     # say("decremented", REVEAL_COOLDOWN_SCORE)
     # execute_if_score(REVEAL_COOLDOWN_SCORE, "matches 1..", 
     #     eval_macro(f"{REVEAL_COOLDOWN_SCORE} -= 1")

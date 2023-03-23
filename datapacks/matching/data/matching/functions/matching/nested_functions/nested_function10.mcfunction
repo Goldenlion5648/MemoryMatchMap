@@ -1,3 +1,3 @@
-execute as @e[tag=selected_mob] at @s run function matching:matching/nested_functions/nested_function8
-execute as @e[tag=selected_slime] at @s run function matching:matching/nested_functions/nested_function9
-schedule function matching:matching/go_to_next_player_turn 10 append
+tp @s @e[tag=face_down_temp_pos,limit=1,type=minecraft:marker,sort=nearest]
+kill @e[tag=face_down_temp_pos,limit=1,sort=nearest]
+tag @s remove selected_mob

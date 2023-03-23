@@ -70,19 +70,20 @@ setblock 50 0 65 yellow_glazed_terracotta[facing=south] replace
 setblock 66 0 65 yellow_glazed_terracotta[facing=south] replace
 setblock 50 0 66 yellow_glazed_terracotta[facing=north] replace
 setblock 66 0 66 yellow_glazed_terracotta[facing=north] replace
-fill 51 0 51 53 0 53 blue_wool
-fill 51 0 55 53 0 57 blue_wool
-fill 51 0 59 53 0 61 blue_wool
-fill 51 0 63 53 0 65 blue_wool
-fill 55 0 51 57 0 53 blue_wool
-fill 55 0 55 57 0 57 blue_wool
-fill 55 0 59 57 0 61 blue_wool
-fill 55 0 63 57 0 65 blue_wool
-fill 59 0 51 61 0 53 blue_wool
-fill 59 0 55 61 0 57 blue_wool
-fill 59 0 59 61 0 61 blue_wool
-fill 59 0 63 61 0 65 blue_wool
-fill 63 0 51 65 0 53 blue_wool
-fill 63 0 55 65 0 57 blue_wool
-fill 63 0 59 65 0 61 blue_wool
-fill 63 0 63 65 0 65 blue_wool
+fill 51 0 51 53 0 53 purple_wool
+fill 51 0 55 53 0 57 black_wool
+fill 51 0 59 53 0 61 purple_wool
+fill 51 0 63 53 0 65 black_wool
+fill 55 0 51 57 0 53 black_wool
+fill 55 0 55 57 0 57 purple_wool
+fill 55 0 59 57 0 61 black_wool
+fill 55 0 63 57 0 65 purple_wool
+fill 59 0 51 61 0 53 purple_wool
+fill 59 0 55 61 0 57 black_wool
+fill 59 0 59 61 0 61 purple_wool
+fill 59 0 63 61 0 65 black_wool
+fill 63 0 51 65 0 53 black_wool
+fill 63 0 55 65 0 57 purple_wool
+fill 63 0 59 65 0 61 black_wool
+fill 63 0 63 65 0 65 purple_wool
+clone 50 0 50 66 0 66 50 -6 50 replace

@@ -1,6 +1,6 @@
-execute if score global selected_difficulty matches 0 run function matching:matching/nested_functions/nested_function11
-execute if score global selected_difficulty matches 1 run function matching:matching/nested_functions/nested_function12
-execute if score global selected_difficulty matches 2 run function matching:matching/nested_functions/nested_function13
+execute if score global selected_difficulty matches 0 run function matching:matching/nested_functions/nested_function13
+execute if score global selected_difficulty matches 1 run function matching:matching/nested_functions/nested_function14
+execute if score global selected_difficulty matches 2 run function matching:matching/nested_functions/nested_function15
 function matching:matching/delayed_code/delayed_code_id8
 schedule function matching:matching/delayed_code/delayed_code_id9 8 append
 schedule function matching:matching/delayed_code/delayed_code_id10 16 append

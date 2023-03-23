@@ -1,4 +1,10 @@
-effect give @s minecraft:jump_boost 8 129 true
-effect give @s minecraft:slowness 8 255 true
-effect give @s minecraft:blindness 8 255 true
-tellraw @s "Looks like someone doesn't want you to see their moves!"
+title @s actionbar {"text":"It is your turn","color":"dark_aqua","bold":true,"underlined":true}
+item replace entity @s hotbar.0 with iron_sword{display:{Name:'{"text":"Card Flipper","color":"gray","bold":true,"italic":false}',Lore:['{"text":"Shows an indicator"}','{"text":"when a card"}','{"text":"is in range"}']},Unbreakable:1b}
+item replace entity @s hotbar.1 with iron_sword{display:{Name:'{"text":"Card Flipper","color":"gray","bold":true,"italic":false}',Lore:['{"text":"Shows an indicator"}','{"text":"when a card"}','{"text":"is in range"}']},Unbreakable:1b}
+item replace entity @s hotbar.2 with iron_sword{display:{Name:'{"text":"Card Flipper","color":"gray","bold":true,"italic":false}',Lore:['{"text":"Shows an indicator"}','{"text":"when a card"}','{"text":"is in range"}']},Unbreakable:1b}
+item replace entity @s hotbar.3 with iron_sword{display:{Name:'{"text":"Card Flipper","color":"gray","bold":true,"italic":false}',Lore:['{"text":"Shows an indicator"}','{"text":"when a card"}','{"text":"is in range"}']},Unbreakable:1b}
+item replace entity @s hotbar.4 with iron_sword{display:{Name:'{"text":"Card Flipper","color":"gray","bold":true,"italic":false}',Lore:['{"text":"Shows an indicator"}','{"text":"when a card"}','{"text":"is in range"}']},Unbreakable:1b}
+item replace entity @s hotbar.5 with iron_sword{display:{Name:'{"text":"Card Flipper","color":"gray","bold":true,"italic":false}',Lore:['{"text":"Shows an indicator"}','{"text":"when a card"}','{"text":"is in range"}']},Unbreakable:1b}
+item replace entity @s hotbar.6 with iron_sword{display:{Name:'{"text":"Card Flipper","color":"gray","bold":true,"italic":false}',Lore:['{"text":"Shows an indicator"}','{"text":"when a card"}','{"text":"is in range"}']},Unbreakable:1b}
+item replace entity @s hotbar.7 with iron_sword{display:{Name:'{"text":"Card Flipper","color":"gray","bold":true,"italic":false}',Lore:['{"text":"Shows an indicator"}','{"text":"when a card"}','{"text":"is in range"}']},Unbreakable:1b}
+item replace entity @s hotbar.8 with iron_sword{display:{Name:'{"text":"Card Flipper","color":"gray","bold":true,"italic":false}',Lore:['{"text":"Shows an indicator"}','{"text":"when a card"}','{"text":"is in range"}']},Unbreakable:1b}

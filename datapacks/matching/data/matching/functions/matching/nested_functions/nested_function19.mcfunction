@@ -1,3 +1,3 @@
-title @s actionbar {"text":"Wait for your turn...","color":"red","bold":true,"underlined":true}
-scoreboard players set @s is_my_turn_score 0
-clear @s 
+function matching:matching/celebration_sound
+function matching:matching/win_animation
+schedule function matching:matching/delayed_code/delayed_code_id18 40 append

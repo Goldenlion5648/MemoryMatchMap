@@ -1,6 +1,7 @@
 say Reload has completed
 scoreboard objectives add const dummy
 scoreboard objectives add remainder dummy
+scoreboard objectives add entity_count_score dummy 
 scoreboard players set const0 const 0
 scoreboard players set const1 const 1
 scoreboard players set const2 const 2
@@ -20,9 +21,11 @@ scoreboard players set const15 const 15
 scoreboard objectives add game_clock dummy 
 scoreboard players set global game_clock 0
 scoreboard objectives add is_make_it_take_it_mode dummy 
+scoreboard objectives add is_winner dummy 
 scoreboard objectives add mob_id dummy 
 scoreboard players set global mob_id 0
 scoreboard objectives add selected_count dummy 
+scoreboard objectives add turn_switch_cooldown dummy 
 scoreboard objectives add reveal_cooldown dummy 
 scoreboard objectives add player_turn_id dummy 
 scoreboard objectives add matching_count dummy 
@@ -38,3 +41,5 @@ scoreboard objectives add has_winner_been_found dummy
 scoreboard objectives add turn_player dummy 
 scoreboard objectives add current_player_id_being_assigned dummy 
 scoreboard objectives add is_my_turn_score dummy 
+scoreboard objectives add used_blindness dummy 
+scoreboard objectives add used_shuffle dummy 
